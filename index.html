@@ -1,0 +1,2782 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Териберка — Край Земли | Экскурсии по Кольскому полуострову</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+
+  :root {
+    --arctic-deep: #0a0f1a;
+    --arctic-mid: #12192e;
+    --aurora-green: #4aeaad;
+    --aurora-teal: #2dd4bf;
+    --aurora-blue: #38bdf8;
+    --aurora-violet: #818cf8;
+    --snow: #e8edf5;
+    --frost: #c1cde0;
+    --stone: #8494ad;
+    --warm-light: #f5deb3;
+    --moss: #6b8f71;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--arctic-deep);
+    color: var(--snow);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  canvas#scene3d {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+
+  .film-grain {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .vignette {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 30%, transparent 30%, rgba(10,15,26,0.8) 100%);
+  }
+
+  .page { position: relative; z-index: 2; }
+
+  /* — NAV — */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.5rem 3rem;
+    background: linear-gradient(to bottom, rgba(10,15,26,0.9), transparent);
+    backdrop-filter: blur(8px);
+    opacity: 0; animation: fadeIn 1s 0.5s forwards;
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 600;
+    letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .logo span { color: var(--aurora-green); }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    color: var(--snow); text-decoration: none;
+    font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase;
+    opacity: 0.6; transition: opacity 0.4s; position: relative;
+  }
+  .nav-links a:hover { opacity: 1; }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: var(--aurora-green);
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* — HERO — */
+  .hero {
+    height: 100vh; display: flex; flex-direction: column;
+    justify-content: flex-end; padding: 0 3rem 6rem; position: relative;
+  }
+  .hero-content {
+    max-width: 800px;
+    opacity: 0; transform: translateY(50px);
+    animation: slideUp 1.4s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .hero-tag {
+    font-size: 0.6rem; letter-spacing: 0.6em; text-transform: uppercase;
+    color: var(--aurora-green); margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .hero-tag::before { content: ''; width: 40px; height: 1px; background: var(--aurora-green); }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3.5rem, 9vw, 8rem);
+    font-weight: 300; line-height: 0.95; letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; font-weight: 300; color: var(--aurora-teal); }
+  .hero-sub {
+    margin-top: 2rem; max-width: 480px;
+    font-size: 0.9rem; line-height: 1.8; color: var(--frost); opacity: 0.7;
+  }
+  .hero-coords {
+    position: absolute; right: 3rem; bottom: 6rem;
+    text-align: right; opacity: 0; animation: fadeIn 1s 1.2s forwards;
+  }
+  .hero-coords .coord {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem; font-weight: 300; color: var(--frost); opacity: 0.3;
+  }
+  .hero-coords .coord-label {
+    font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--stone); margin-top: 0.2rem;
+  }
+  .scroll-indicator {
+    position: absolute; left: 3rem; bottom: 2rem;
+    display: flex; align-items: center; gap: 1rem;
+    opacity: 0; animation: fadeIn 1s 1.6s forwards;
+  }
+  .scroll-indicator .line {
+    width: 1px; height: 50px;
+    background: linear-gradient(to bottom, var(--aurora-green), transparent);
+    animation: scrollPulse 2.5s ease-in-out infinite;
+  }
+  .scroll-indicator span {
+    font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--stone); writing-mode: vertical-rl;
+  }
+
+  /* — SHARED SECTION STYLES — */
+  .section-header {
+    padding: 8rem 3rem 3rem;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    flex-wrap: wrap; gap: 2rem;
+  }
+  .section-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 300; line-height: 1.1;
+  }
+  .section-header .desc {
+    max-width: 400px; font-size: 0.8rem;
+    line-height: 1.8; color: var(--frost); opacity: 0.5;
+  }
+  .section-divider {
+    width: calc(100% - 6rem); margin: 0 3rem;
+    height: 1px; background: rgba(255,255,255,0.06);
+  }
+  .section-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.8rem; color: var(--aurora-green);
+    margin-bottom: 0.5rem; opacity: 0.6;
+  }
+
+  /* — PLACES GRID (Teriberka landmarks) — */
+  .places-grid {
+    padding: 4rem 3rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+  .place-card {
+    border-radius: 16px; overflow: hidden;
+    background: rgba(18, 25, 46, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0; transform: translateY(50px);
+  }
+  .place-card.visible { opacity: 1; transform: translateY(0); }
+  .place-card:hover {
+    border-color: rgba(74, 234, 173, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 30px 80px -20px rgba(74, 234, 173, 0.06);
+  }
+  .place-visual {
+    height: 180px; position: relative; overflow: hidden;
+  }
+  .place-visual canvas { width: 100%; height: 100%; display: block; }
+  .place-badge {
+    position: absolute; top: 1rem; left: 1rem;
+    font-size: 0.5rem; letter-spacing: 0.35em; text-transform: uppercase;
+    padding: 0.4rem 0.8rem; border-radius: 20px;
+    background: rgba(10,15,26,0.7); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.08); color: var(--aurora-green);
+  }
+  .place-body { padding: 1.8rem; }
+  .place-body h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem; font-weight: 400; line-height: 1.2;
+    margin-bottom: 0.8rem;
+  }
+  .place-body p {
+    font-size: 0.78rem; line-height: 1.75;
+    color: var(--frost); opacity: 0.55;
+  }
+  .place-tags {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.2rem;
+  }
+  .place-tags span {
+    font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 0.3rem 0.7rem; border-radius: 12px;
+    background: rgba(74, 234, 173, 0.06);
+    border: 1px solid rgba(74, 234, 173, 0.1);
+    color: var(--frost);
+  }
+
+  /* — EXCURSION CARDS — */
+  .excursions {
+    padding: 4rem 3rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 2rem;
+  }
+  .exc-card {
+    position: relative; border-radius: 16px; overflow: hidden;
+    background: rgba(18, 25, 46, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.04);
+    padding: 2.5rem; cursor: pointer;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0; transform: translateY(60px);
+  }
+  .exc-card.visible { opacity: 1; transform: translateY(0); }
+  .exc-card:hover {
+    border-color: rgba(74, 234, 173, 0.15);
+    transform: translateY(-6px);
+    box-shadow: 0 30px 80px -20px rgba(74, 234, 173, 0.08);
+  }
+  .exc-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 200px;
+    background: linear-gradient(135deg, rgba(74,234,173,0.06) 0%, rgba(56,189,248,0.04) 50%, transparent 100%);
+    pointer-events: none;
+  }
+  .exc-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-bottom: 1.5rem;
+    background: rgba(74, 234, 173, 0.08);
+    border: 1px solid rgba(74, 234, 173, 0.12);
+  }
+  .exc-card .exc-tag {
+    font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--aurora-green); margin-bottom: 1rem;
+  }
+  .exc-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem; font-weight: 400; line-height: 1.2; margin-bottom: 1rem;
+  }
+  .exc-card p {
+    font-size: 0.8rem; line-height: 1.75;
+    color: var(--frost); opacity: 0.55; margin-bottom: 2rem;
+  }
+  .exc-meta {
+    display: flex; gap: 2rem; padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .exc-meta-item .meta-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 400; color: var(--snow);
+  }
+  .exc-meta-item .meta-label {
+    font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--stone); margin-top: 0.2rem;
+  }
+  .exc-price { margin-left: auto; text-align: right; }
+  .exc-price .meta-val { color: var(--aurora-green); }
+
+  /* — INFO BANNER — */
+  .info-banner {
+    margin: 2rem 3rem; padding: 3rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(74,234,173,0.06) 0%, rgba(129,140,248,0.04) 100%);
+    border: 1px solid rgba(74,234,173,0.08);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+    align-items: center;
+  }
+  .info-banner h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 400; margin-bottom: 1rem;
+  }
+  .info-banner p {
+    font-size: 0.8rem; line-height: 1.8; color: var(--frost); opacity: 0.6;
+  }
+  .info-facts {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  .info-fact .big {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem; font-weight: 300;
+    background: linear-gradient(135deg, var(--aurora-green), var(--aurora-blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .info-fact .small {
+    font-size: 0.55rem; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--stone); margin-top: 0.2rem;
+  }
+
+  /* — NATURE SECTION — */
+  .nature-section {
+    padding: 8rem 3rem;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; align-items: center;
+  }
+  .nature-text { max-width: 500px; }
+  .nature-text .label {
+    font-size: 0.6rem; letter-spacing: 0.5em; text-transform: uppercase;
+    color: var(--aurora-green); margin-bottom: 1.5rem;
+  }
+  .nature-text h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 300; line-height: 1.15; margin-bottom: 1.5rem;
+  }
+  .nature-text p {
+    font-size: 0.85rem; line-height: 1.85; color: var(--frost); opacity: 0.6;
+    margin-bottom: 1rem;
+  }
+  .nature-visual {
+    position: relative; height: 500px; border-radius: 20px; overflow: hidden;
+    background: linear-gradient(160deg, var(--arctic-mid) 0%, rgba(74,234,173,0.05) 100%);
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .nature-visual canvas { width: 100%; height: 100%; }
+
+  /* — REGION SECTION — */
+  .region-grid {
+    padding: 4rem 3rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+  .region-card {
+    padding: 2.5rem; border-radius: 16px;
+    background: rgba(18, 25, 46, 0.5);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: all 0.5s;
+    opacity: 0; transform: translateY(50px);
+    position: relative; overflow: hidden;
+  }
+  .region-card.visible { opacity: 1; transform: translateY(0); }
+  .region-card:hover {
+    border-color: rgba(129, 140, 248, 0.15);
+    transform: translateY(-4px);
+  }
+  .region-card .region-icon {
+    font-size: 2rem; margin-bottom: 1rem;
+  }
+  .region-card .region-tag {
+    font-size: 0.5rem; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--aurora-violet); margin-bottom: 0.8rem;
+  }
+  .region-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem; font-weight: 400; margin-bottom: 0.8rem;
+  }
+  .region-card p {
+    font-size: 0.78rem; line-height: 1.75;
+    color: var(--frost); opacity: 0.5;
+  }
+  .region-card .distance {
+    margin-top: 1.2rem; padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.6rem; letter-spacing: 0.2em; color: var(--stone);
+  }
+  .region-card .distance strong {
+    color: var(--aurora-violet); font-weight: 500;
+  }
+
+  /* — SEASONS — */
+  .seasons {
+    padding: 4rem 3rem 8rem;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  }
+  .season-card {
+    padding: 3rem 2rem; border: 1px solid rgba(255,255,255,0.03);
+    border-radius: 12px; transition: all 0.5s; cursor: pointer;
+    position: relative; overflow: hidden;
+    opacity: 0; transform: translateY(40px);
+  }
+  .season-card.visible { opacity: 1; transform: translateY(0); }
+  .season-card:hover {
+    background: rgba(74, 234, 173, 0.03);
+    border-color: rgba(74, 234, 173, 0.1);
+  }
+  .season-card .season-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 4rem; font-weight: 300;
+    color: rgba(255,255,255,0.04); position: absolute; top: 1rem; right: 1.5rem;
+  }
+  .season-card .season-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem; font-weight: 400; margin-bottom: 0.5rem;
+  }
+  .season-card .season-period {
+    font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--aurora-green); margin-bottom: 1.2rem;
+  }
+  .season-card .season-desc {
+    font-size: 0.75rem; line-height: 1.7; color: var(--frost); opacity: 0.45;
+  }
+  .season-card .season-highlights {
+    margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.4rem;
+  }
+  .season-card .season-highlights span {
+    font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 0.25rem 0.5rem; border-radius: 8px;
+    background: rgba(74,234,173,0.05); color: var(--frost); opacity: 0.5;
+  }
+
+  /* — HOW TO GET — */
+  .how-to-get {
+    padding: 2rem 3rem 4rem;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+  }
+  .route-card {
+    padding: 2rem; border-radius: 14px;
+    background: rgba(18,25,46,0.4); border: 1px solid rgba(255,255,255,0.03);
+    opacity: 0; transform: translateY(40px);
+  }
+  .route-card.visible { opacity: 1; transform: translateY(0); }
+  .route-card .route-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+  .route-card h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem; margin-bottom: 0.5rem;
+  }
+  .route-card p {
+    font-size: 0.75rem; line-height: 1.7; color: var(--frost); opacity: 0.5;
+  }
+
+  /* — REVIEWS — */
+  .reviews-container {
+    padding: 4rem 3rem;
+    position: relative; overflow: hidden;
+  }
+  .reviews-track {
+    display: flex; gap: 2rem;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    scrollbar-width: none; -ms-overflow-style: none;
+    padding-bottom: 1rem;
+  }
+  .reviews-track::-webkit-scrollbar { display: none; }
+  .review-card {
+    flex: 0 0 380px; scroll-snap-align: start;
+    padding: 2.5rem; border-radius: 16px;
+    background: rgba(18, 25, 46, 0.55);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0; transform: translateY(40px);
+  }
+  .review-card.visible { opacity: 1; transform: translateY(0); }
+  .review-card:hover {
+    border-color: rgba(74,234,173,0.12);
+    transform: translateY(-3px);
+  }
+  .review-stars {
+    display: flex; gap: 0.25rem; margin-bottom: 1.2rem;
+  }
+  .review-stars svg {
+    width: 14px; height: 14px;
+    fill: var(--aurora-green); stroke: none;
+  }
+  .review-text {
+    font-size: 0.82rem; line-height: 1.8;
+    color: var(--frost); opacity: 0.7;
+    font-style: italic; margin-bottom: 1.5rem;
+    position: relative; padding-left: 1.2rem;
+  }
+  .review-text::before {
+    content: '«'; position: absolute; left: 0; top: -0.1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem; color: var(--aurora-green); opacity: 0.4;
+    line-height: 1;
+  }
+  .review-author {
+    display: flex; align-items: center; gap: 1rem;
+    padding-top: 1.2rem; border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  .review-avatar-circle {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(74,234,173,0.15), rgba(129,140,248,0.12));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; font-weight: 600; color: var(--aurora-green);
+  }
+  .review-author-info .review-name {
+    font-size: 0.8rem; font-weight: 500; color: var(--snow);
+  }
+  .review-author-info .review-origin {
+    font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--stone); margin-top: 0.15rem;
+  }
+  .review-excursion {
+    font-size: 0.5rem; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--aurora-green); margin-bottom: 1rem; opacity: 0.7;
+  }
+  .reviews-nav {
+    display: flex; justify-content: center; gap: 0.8rem;
+    margin-top: 2rem;
+  }
+  .reviews-nav button {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(18,25,46,0.6); border: 1px solid rgba(255,255,255,0.06);
+    color: var(--snow); cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    transition: all 0.3s;
+  }
+  .reviews-nav button:hover {
+    border-color: var(--aurora-green); background: rgba(74,234,173,0.1);
+  }
+  .reviews-nav button svg { width: 16px; height: 16px; }
+  body.a11y-mode .review-card {
+    background: #fff !important; border: 2px solid #ddd !important;
+    backdrop-filter: none !important;
+    opacity: 1 !important; transform: none !important;
+  }
+  body.a11y-mode .review-text { color: #333 !important; opacity: 1 !important; }
+  body.a11y-mode .review-text::before { color: #006644 !important; }
+  body.a11y-mode .review-name { color: #111 !important; }
+  body.a11y-mode .review-origin { color: #666 !important; }
+  body.a11y-mode .review-excursion { color: #006644 !important; }
+  body.a11y-mode .review-stars svg { fill: #006644 !important; }
+  body.a11y-mode .review-avatar-circle {
+    background: #e0f0e8 !important; color: #006644 !important;
+  }
+  body.a11y-mode .reviews-nav button {
+    background: #fff !important; border: 2px solid #006644 !important; color: #006644 !important;
+  }
+  @media (max-width: 900px) {
+    .review-card { flex: 0 0 85vw; }
+  }
+
+  /* — CTA — */
+  .cta-section { padding: 6rem 3rem 8rem; text-align: center; }
+  .cta-section h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 300; margin-bottom: 1.5rem;
+  }
+  .cta-section h2 em { font-style: italic; color: var(--aurora-teal); }
+  .cta-btn {
+    display: inline-flex; align-items: center; gap: 1rem;
+    margin-top: 2rem; padding: 1.2rem 3rem;
+    background: linear-gradient(135deg, var(--aurora-green), var(--aurora-teal));
+    color: var(--arctic-deep); font-weight: 600;
+    font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+    text-decoration: none; border-radius: 60px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer; border: none;
+  }
+  .cta-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 60px -10px rgba(74, 234, 173, 0.3);
+  }
+  .cta-btn svg { transition: transform 0.3s; }
+  .cta-btn:hover svg { transform: translateX(4px); }
+
+  .cta-contacts {
+    display: flex; justify-content: center; gap: 1.5rem;
+    margin-top: 2.5rem; flex-wrap: wrap;
+  }
+  .cta-contact-link {
+    display: inline-flex; align-items: center; gap: 0.7rem;
+    padding: 1rem 2rem;
+    border-radius: 60px; text-decoration: none;
+    font-size: 0.8rem; font-weight: 500;
+    letter-spacing: 0.05em;
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+    pointer-events: auto;
+  }
+  .cta-contact-link svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .cta-contact-link.tg {
+    background: rgba(42,171,238,0.12);
+    border: 1px solid rgba(42,171,238,0.25);
+    color: #5BC0F8;
+  }
+  .cta-contact-link.tg:hover {
+    background: rgba(42,171,238,0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(42,171,238,0.15);
+  }
+  .cta-contact-link.phone {
+    background: rgba(74,234,173,0.1);
+    border: 1px solid rgba(74,234,173,0.2);
+    color: var(--aurora-green);
+  }
+  .cta-contact-link.phone:hover {
+    background: rgba(74,234,173,0.18);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(74,234,173,0.15);
+  }
+  body.a11y-mode .cta-contact-link.tg {
+    background: #e8f4fd !important; border-color: #2AABEE !important;
+    color: #1a7ab5 !important;
+  }
+  body.a11y-mode .cta-contact-link.phone {
+    background: #e0f0e8 !important; border-color: #006644 !important;
+    color: #006644 !important;
+  }
+
+  footer {
+    padding: 3rem; display: flex;
+    justify-content: space-between; align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.6rem; color: var(--stone); letter-spacing: 0.15em;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  footer a { color: var(--aurora-green); text-decoration: none; }
+
+  /* — GUIDES — */
+  .guides-grid {
+    padding: 4rem 3rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+  .guide-card {
+    border-radius: 16px; overflow: hidden;
+    background: rgba(18, 25, 46, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0; transform: translateY(50px);
+    position: relative;
+  }
+  .guide-card.visible { opacity: 1; transform: translateY(0); }
+  .guide-card:hover {
+    border-color: rgba(74, 234, 173, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 25px 60px -15px rgba(74, 234, 173, 0.08);
+  }
+  .guide-card.lead { border-color: rgba(74,234,173,0.12); }
+  .guide-card.lead::after {
+    content: 'Главный гид'; position: absolute; top: 1rem; right: 1rem;
+    font-size: 0.5rem; letter-spacing: 0.35em; text-transform: uppercase;
+    padding: 0.35rem 0.7rem; border-radius: 20px;
+    background: linear-gradient(135deg, var(--aurora-green), var(--aurora-teal));
+    color: var(--arctic-deep); font-weight: 600; z-index: 2;
+  }
+  .guide-avatar {
+    height: 220px; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, rgba(74,234,173,0.08), rgba(129,140,248,0.06));
+    display: flex; align-items: center; justify-content: center;
+  }
+  .guide-avatar canvas { width: 100%; height: 100%; }
+  .guide-avatar .initials {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.5rem; font-weight: 300;
+    color: rgba(232,237,245,0.12);
+    pointer-events: none;
+  }
+  .guide-body { padding: 2rem; }
+  .guide-body h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem; font-weight: 400; margin-bottom: 0.3rem;
+  }
+  .guide-role {
+    font-size: 0.55rem; letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--aurora-green); margin-bottom: 1rem;
+  }
+  .guide-body p {
+    font-size: 0.78rem; line-height: 1.75;
+    color: var(--frost); opacity: 0.55;
+  }
+  .guide-stats {
+    display: flex; gap: 1.5rem; margin-top: 1.5rem;
+    padding-top: 1.2rem; border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  .guide-stat .g-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; color: var(--snow);
+  }
+  .guide-stat .g-label {
+    font-size: 0.5rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--stone); margin-top: 0.15rem;
+  }
+  .guide-specialties {
+    display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem;
+  }
+  .guide-specialties span {
+    font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 0.25rem 0.55rem; border-radius: 10px;
+    background: rgba(74,234,173,0.06);
+    border: 1px solid rgba(74,234,173,0.08);
+    color: var(--frost);
+  }
+
+  /* — LANGUAGE SWITCHER — */
+  .lang-switch {
+    display: flex; align-items: center; gap: 0.3rem;
+    margin-left: 1.5rem; padding-left: 1.5rem;
+    border-left: 1px solid rgba(255,255,255,0.1);
+  }
+  .lang-btn {
+    background: none; border: 1px solid transparent;
+    color: var(--snow); cursor: pointer;
+    font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 0.35rem 0.6rem; border-radius: 6px;
+    opacity: 0.4; transition: all 0.3s;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .lang-btn:hover { opacity: 0.7; }
+  .lang-btn.active {
+    opacity: 1; border-color: var(--aurora-green);
+    background: rgba(74,234,173,0.08);
+    color: var(--aurora-green);
+  }
+  body.a11y-mode .lang-switch { border-left-color: #ccc !important; }
+  body.a11y-mode .lang-btn {
+    color: #111 !important; opacity: 0.5 !important;
+  }
+  body.a11y-mode .lang-btn.active {
+    opacity: 1 !important; color: #006644 !important;
+    border-color: #006644 !important;
+    background: #e0f0e8 !important;
+  }
+
+  /* — Chinese typography — */
+  body.lang-zh {
+    font-family: 'Noto Sans SC', 'IBM Plex Sans', sans-serif;
+  }
+  body.lang-zh .hero h1,
+  body.lang-zh .section-header h2,
+  body.lang-zh .nature-text h2,
+  body.lang-zh .cta-section h2,
+  body.lang-zh .exc-card h3,
+  body.lang-zh .place-body h3,
+  body.lang-zh .region-card h3,
+  body.lang-zh .guide-body h3,
+  body.lang-zh .season-name,
+  body.lang-zh .info-banner h3,
+  body.lang-zh .route-card h4,
+  body.lang-zh .hero-coords .coord,
+  body.lang-zh .info-fact .big,
+  body.lang-zh .nature-stat .big,
+  body.lang-zh .meta-val,
+  body.lang-zh .g-val {
+    font-family: 'Noto Serif SC', 'Cormorant Garamond', serif;
+  }
+  body.lang-zh .logo {
+    font-family: 'Noto Serif SC', serif;
+  }
+
+  /* — ACCESSIBILITY TOGGLE (left side) — */
+  .a11y-toggle {
+    position: fixed; top: 50%; left: 0; z-index: 200;
+    transform: translateY(-50%);
+    width: auto; height: auto; border-radius: 0 12px 12px 0;
+    background: rgba(18,25,46,0.9);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-left: none;
+    color: var(--snow); cursor: pointer;
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.7rem 0.9rem 0.7rem 0.7rem;
+    transition: all 0.3s;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+    writing-mode: horizontal-tb;
+  }
+  .a11y-toggle:hover {
+    border-color: var(--aurora-green);
+    padding-right: 1.2rem;
+  }
+  .a11y-toggle svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .a11y-toggle .tooltip {
+    font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase;
+    white-space: nowrap;
+    max-width: 0; overflow: hidden; opacity: 0;
+    transition: max-width 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.3s;
+  }
+  .a11y-toggle:hover .tooltip {
+    max-width: 200px; opacity: 1;
+  }
+
+  /* — SCROLL FABs (bottom left) — */
+  .scroll-fab-group {
+    position: fixed; bottom: 2rem; left: 2rem; z-index: 200;
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .scroll-fab {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: rgba(18,25,46,0.8);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: var(--snow); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    opacity: 0; transform: translateX(-20px);
+    pointer-events: none;
+  }
+  .scroll-fab.visible {
+    opacity: 1; transform: translateX(0);
+    pointer-events: auto;
+  }
+  .scroll-fab:hover {
+    border-color: var(--aurora-green);
+    background: rgba(74,234,173,0.12);
+    transform: translateX(0) scale(1.1);
+  }
+  .scroll-fab svg { width: 18px; height: 18px; }
+
+  /* — CONTACT FABs (bottom right) — */
+  .contact-fab-group {
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 200;
+    display: flex; flex-direction: column; gap: 0.6rem;
+  }
+  .contact-fab {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+    border: none; text-decoration: none;
+    position: relative;
+  }
+  .contact-fab svg { width: 22px; height: 22px; }
+  .contact-fab .fab-label {
+    position: absolute; right: 58px; top: 50%; transform: translateY(-50%);
+    background: rgba(18,25,46,0.95); padding: 0.4rem 0.8rem;
+    border-radius: 8px; font-size: 0.6rem; letter-spacing: 0.1em;
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s; border: 1px solid rgba(255,255,255,0.06);
+    color: var(--snow); font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .contact-fab:hover .fab-label { opacity: 1; }
+  .contact-fab.tg {
+    background: linear-gradient(135deg, #2AABEE, #229ED9);
+    color: #fff;
+  }
+  .contact-fab.tg:hover {
+    transform: scale(1.12);
+    box-shadow: 0 10px 35px rgba(42,171,238,0.35);
+  }
+  .contact-fab.phone {
+    background: linear-gradient(135deg, var(--aurora-green), var(--aurora-teal));
+    color: var(--arctic-deep);
+  }
+  .contact-fab.phone:hover {
+    transform: scale(1.12);
+    box-shadow: 0 10px 35px rgba(74,234,173,0.35);
+  }
+
+  /* a11y overrides */
+  body.a11y-mode .a11y-toggle {
+    background: #006644 !important; border-color: #006644 !important;
+    color: #fff !important; box-shadow: 2px 0 8px rgba(0,0,0,0.1) !important;
+  }
+  body.a11y-mode .a11y-toggle .tooltip { color: #fff !important; }
+  body.a11y-mode .scroll-fab {
+    background: #fff !important; border: 2px solid #006644 !important;
+    color: #006644 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+  }
+  body.a11y-mode .scroll-fab:hover {
+    background: #006644 !important; color: #fff !important;
+  }
+  body.a11y-mode .scroll-fab.visible {
+    opacity: 1 !important; transform: none !important;
+  }
+
+  /* — HIGH CONTRAST / ACCESSIBILITY MODE — */
+  body.a11y-mode {
+    font-family: 'IBM Plex Sans', Arial, Helvetica, sans-serif !important;
+    font-size: 18px !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.7 !important;
+  }
+  body.a11y-mode * {
+    transition: none !important;
+    animation: none !important;
+  }
+  body.a11y-mode canvas#scene3d,
+  body.a11y-mode .film-grain,
+  body.a11y-mode .vignette,
+  body.a11y-mode .place-canvas {
+    display: none !important;
+  }
+  body.a11y-mode .page {
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+  body.a11y-mode nav {
+    background: #ffffff !important;
+    border-bottom: 2px solid #111 !important;
+    mix-blend-mode: normal !important;
+    opacity: 1 !important;
+  }
+  body.a11y-mode .logo { color: #111 !important; }
+  body.a11y-mode .logo span { color: #006644 !important; }
+  body.a11y-mode .nav-links a {
+    color: #111 !important; opacity: 1 !important;
+    font-size: 0.85rem !important;
+  }
+  body.a11y-mode .nav-links a::after { background: #006644 !important; }
+  body.a11y-mode .hero {
+    background: #f5f5f0 !important;
+  }
+  body.a11y-mode .hero h1 {
+    color: #111 !important;
+    -webkit-text-fill-color: #111 !important;
+    font-size: clamp(2.5rem, 6vw, 5rem) !important;
+  }
+  body.a11y-mode .hero h1 em {
+    color: #006644 !important;
+    -webkit-text-fill-color: #006644 !important;
+  }
+  body.a11y-mode .hero-tag,
+  body.a11y-mode .exc-tag,
+  body.a11y-mode .place-badge,
+  body.a11y-mode .section-num,
+  body.a11y-mode .nature-text .label,
+  body.a11y-mode .region-tag,
+  body.a11y-mode .guide-role,
+  body.a11y-mode .season-period {
+    color: #006644 !important;
+  }
+  body.a11y-mode .hero-tag::before { background: #006644 !important; }
+  body.a11y-mode .hero-sub,
+  body.a11y-mode .desc,
+  body.a11y-mode .exc-card p,
+  body.a11y-mode .place-body p,
+  body.a11y-mode .region-card p,
+  body.a11y-mode .guide-body p,
+  body.a11y-mode .season-desc,
+  body.a11y-mode .route-card p,
+  body.a11y-mode .info-banner p,
+  body.a11y-mode .nature-text p {
+    color: #333 !important; opacity: 1 !important;
+    font-size: 1rem !important; line-height: 1.8 !important;
+  }
+  body.a11y-mode .hero-coords .coord,
+  body.a11y-mode .hero-coords .coord-label { color: #555 !important; opacity: 1 !important; }
+  body.a11y-mode .scroll-indicator { display: none !important; }
+  body.a11y-mode .section-header h2,
+  body.a11y-mode .nature-text h2,
+  body.a11y-mode .cta-section h2 {
+    color: #111 !important; -webkit-text-fill-color: #111 !important;
+  }
+  body.a11y-mode .cta-section h2 em {
+    color: #006644 !important; -webkit-text-fill-color: #006644 !important;
+  }
+  body.a11y-mode .section-divider { background: #ccc !important; }
+  body.a11y-mode .place-card,
+  body.a11y-mode .exc-card,
+  body.a11y-mode .region-card,
+  body.a11y-mode .guide-card,
+  body.a11y-mode .season-card,
+  body.a11y-mode .route-card {
+    background: #ffffff !important;
+    border: 2px solid #ddd !important;
+    backdrop-filter: none !important;
+    opacity: 1 !important; transform: none !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+  }
+  body.a11y-mode .place-card h3,
+  body.a11y-mode .exc-card h3,
+  body.a11y-mode .region-card h3,
+  body.a11y-mode .guide-body h3,
+  body.a11y-mode .season-name,
+  body.a11y-mode .route-card h4 {
+    color: #111 !important;
+  }
+  body.a11y-mode .place-visual {
+    background: #e8ede5 !important;
+    display: flex; align-items: center; justify-content: center;
+  }
+  body.a11y-mode .place-visual canvas { display: none !important; }
+  body.a11y-mode .place-badge {
+    position: relative !important; top: auto !important; left: auto !important;
+    background: #e0f0e8 !important; border-color: #006644 !important;
+    font-size: 0.75rem !important; font-weight: 600 !important;
+    color: #006644 !important;
+  }
+  body.a11y-mode .place-tags span,
+  body.a11y-mode .season-highlights span,
+  body.a11y-mode .guide-specialties span {
+    background: #e0f0e8 !important; border-color: #ccc !important;
+    color: #333 !important; font-size: 0.7rem !important;
+  }
+  body.a11y-mode .exc-card::before { display: none !important; }
+  body.a11y-mode .exc-icon {
+    background: #e0f0e8 !important; border-color: #aaa !important;
+  }
+  body.a11y-mode .exc-meta { border-top-color: #ddd !important; }
+  body.a11y-mode .meta-val { color: #111 !important; }
+  body.a11y-mode .meta-label,
+  body.a11y-mode .g-label,
+  body.a11y-mode .info-fact .small,
+  body.a11y-mode .distance {
+    color: #666 !important;
+  }
+  body.a11y-mode .exc-price .meta-val { color: #006644 !important; }
+  body.a11y-mode .info-banner {
+    background: #f0f5f2 !important;
+    border-color: #ccc !important;
+  }
+  body.a11y-mode .info-banner h3 { color: #111 !important; }
+  body.a11y-mode .info-fact .big {
+    -webkit-text-fill-color: #006644 !important;
+    color: #006644 !important;
+  }
+  body.a11y-mode .nature-section {
+    background: #f5f5f0 !important;
+  }
+  body.a11y-mode .nature-visual {
+    background: #e0e8e2 !important;
+    border-color: #ccc !important;
+  }
+  body.a11y-mode .nature-stat .big {
+    -webkit-text-fill-color: #006644 !important;
+    color: #006644 !important;
+  }
+  body.a11y-mode .nature-stat .small { color: #666 !important; }
+  body.a11y-mode .guide-avatar {
+    background: #e8ede5 !important;
+  }
+  body.a11y-mode .guide-avatar .initials { color: rgba(0,0,0,0.08) !important; }
+  body.a11y-mode .guide-avatar canvas { display: none !important; }
+  body.a11y-mode .guide-card.lead::after {
+    background: #006644 !important; color: #fff !important;
+  }
+  body.a11y-mode .guide-stats { border-top-color: #ddd !important; }
+  body.a11y-mode .g-val { color: #111 !important; }
+  body.a11y-mode .season-num { color: rgba(0,0,0,0.05) !important; }
+  body.a11y-mode .region-icon { filter: grayscale(0) !important; }
+  body.a11y-mode .distance strong { color: #006644 !important; }
+  body.a11y-mode .cta-section { background: #f0f5f2 !important; }
+  body.a11y-mode .cta-btn {
+    background: #006644 !important; color: #fff !important;
+    font-size: 1rem !important;
+  }
+  body.a11y-mode footer {
+    background: #fff !important; border-top-color: #ddd !important;
+    color: #666 !important;
+  }
+  body.a11y-mode footer a { color: #006644 !important; }
+
+  @keyframes fadeIn { to { opacity: 1; } }
+  @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+  @keyframes scrollPulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
+
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hero, .section-header, .excursions, .places-grid, .region-grid,
+    .nature-section, .cta-section, .info-banner, .how-to-get { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .hero-coords { display: none; }
+    .nature-section { grid-template-columns: 1fr; }
+    .nature-visual { height: 300px; }
+    .seasons { grid-template-columns: 1fr 1fr; }
+    .info-banner { grid-template-columns: 1fr; }
+    .how-to-get { grid-template-columns: 1fr; }
+    footer { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="scene3d"></canvas>
+<div class="film-grain"></div>
+<div class="vignette"></div>
+
+<div class="page">
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">Тери<span>.</span>берка</div>
+    <ul class="nav-links">
+      <li><a href="#places" data-i18n="nav_places">Места</a></li>
+      <li><a href="#excursions" data-i18n="nav_excursions">Экскурсии</a></li>
+      <li><a href="#nature" data-i18n="nav_nature">Природа</a></li>
+      <li><a href="#region" data-i18n="nav_region">Кольский</a></li>
+      <li><a href="#seasons" data-i18n="nav_seasons">Сезоны</a></li>
+      <li><a href="#guides" data-i18n="nav_guides">Гиды</a></li>
+      <li><a href="#contact" data-i18n="nav_contact">Связаться</a></li>
+    </ul>
+    <div class="lang-switch">
+      <button class="lang-btn active" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="zh">中文</button>
+    </div>
+  </nav>
+
+  <!-- ═══════════ HERO ═══════════ -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-tag" data-i18n="hero_tag">Кольский полуостров · Баренцево море · 69° с.ш.</div>
+      <h1 data-i18n="hero_title" data-i18n-html="1">Край<br><em>земли</em></h1>
+      <p class="hero-sub" data-i18n="hero_sub">Единственное место в России, куда можно доехать на автомобиле и оказаться на настоящем берегу Северного Ледовитого океана. Здесь тундра встречает океан, а северное сияние танцует над скелетами кораблей.</p>
+    </div>
+    <div class="hero-coords">
+      <div class="coord">69.16°N</div>
+      <div class="coord-label" data-i18n="hero_lat">Широта</div>
+      <div class="coord" style="margin-top:1rem;">35.10°E</div>
+      <div class="coord-label" data-i18n="hero_lon">Долгота</div>
+    </div>
+    <div class="scroll-indicator">
+      <div class="line"></div>
+      <span data-i18n="hero_scroll">Прокрутите</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ PLACES OF TERIBERKA ═══════════ -->
+  <div id="places">
+    <div class="section-header">
+      <div>
+        <div class="section-num">01</div>
+        <h2 data-i18n="places_title" data-i18n-html="1">Знаковые места<br>Териберки</h2>
+      </div>
+      <div class="desc" data-i18n="places_desc">Село, включённое National Geographic в топ-20 лучших мест для путешествий. Каждый уголок — это история, природная скульптура или шёпот Арктики.</div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="places-grid">
+
+      <div class="place-card" data-reveal data-delay="0">
+        <div class="place-visual">
+          <canvas class="place-canvas" data-scene="rocks"></canvas>
+          <div class="place-badge" data-i18n="badge_signature">Визитная карточка</div>
+        </div>
+        <div class="place-body">
+          <h3 data-i18n="place1_title">Пляж «Яйца дракона»</h3>
+          <p><span data-i18n="place1_desc">Береговая линия из гигантских валунов, отшлифованных прибоем до идеальной овальной формы. Местные рассказывают легенду о драконах, которые когда-то гнездились на этих берегах и сторожили несметные сокровища. Входит в территорию природного парка «Териберка».</span></p>
+          <div class="place-tags">
+            <span>Природный парк</span>
+            <span>Круглый год</span>
+            <span>Фотолокация</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="place-card" data-reveal data-delay="100">
+        <div class="place-visual">
+          <canvas class="place-canvas" data-scene="waterfall"></canvas>
+          <div class="place-badge" data-i18n="badge_mustsee">Must see</div>
+        </div>
+        <div class="place-body">
+          <h3 data-i18n="place2_title">Батарейский водопад</h3>
+          <p>Красивейшая достопримечательность Териберки — водопад, проистекающий из горного озера и ниспадающий прямо в Баренцево море. Каскады воды обрушиваются со скал — зрелище, от которого перехватывает дыхание. Особенно мощный в период таяния снегов и летних дождей.</p>
+          <div class="place-tags">
+            <span>Водопад</span>
+            <span>Июнь–Сентябрь</span>
+            <span>Треккинг 3 км</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="place-card" data-reveal data-delay="200">
+        <div class="place-visual">
+          <canvas class="place-canvas" data-scene="ships"></canvas>
+          <div class="place-badge" data-i18n="badge_film">Кино-локация</div>
+        </div>
+        <div class="place-body">
+          <h3 data-i18n="place3_title">Кладбище кораблей</h3>
+          <p>Полтора десятка старых деревянных траулеров — последнее пристанище рыболовецкого флота, пришедшего в упадок в 1960-х. Находится между Старой и Новой Териберкой. Самое фотографируемое место посёлка. Один из кораблей врос в берег и используется как импровизированный пирс.</p>
+          <div class="place-tags">
+            <span>История</span>
+            <span>Круглый год</span>
+            <span>Левиафан</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="place-card" data-reveal data-delay="300">
+        <div class="place-visual">
+          <canvas class="place-canvas" data-scene="eye"></canvas>
+          <div class="place-badge" data-i18n="badge_secret">Секретное место</div>
+        </div>
+        <div class="place-body">
+          <h3 data-i18n="place4_title">Глаз дракона</h3>
+          <p>Природная выемка в прибрежной скале, где скапливается вода и растительность — создавая иллюзию цветного круглого зрачка. Находится в 3 км от каменного пляжа, до него добираются немногие. Рядом — руины артиллерийской батареи №199 береговой обороны времён ВОВ.</p>
+          <div class="place-tags">
+            <span>Природа</span>
+            <span>40 мин от пляжа</span>
+            <span>Скрытая жемчужина</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="place-card" data-reveal data-delay="100">
+        <div class="place-visual">
+          <canvas class="place-canvas" data-scene="aurora-mini"></canvas>
+          <div class="place-badge" data-i18n="badge_leviathan">Фильм Звягинцева</div>
+        </div>
+        <div class="place-body">
+          <h3 data-i18n="place5_title">Скелет кита из «Левиафана»</h3>
+          <p>Бутафорский скелет кита длиной почти 30 метров, оставшийся после съёмок фильма «Левиафан» (2014). Арктические пейзажи Териберки стали идеальной декорацией для этой социальной драмы. Скелет настолько реалистичен, что превратился в самостоятельную достопримечательность.</p>
+          <div class="place-tags">
+            <span>Арт-объект</span>
+            <span>Старая Териберка</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="place-card" data-reveal data-delay="200">
+        <div class="place-visual">
+          <canvas class="place-canvas" data-scene="swing"></canvas>
+          <div class="place-badge" data-i18n="badge_insta">Инстаграм-спот</div>
+        </div>
+        <div class="place-body">
+          <h3 data-i18n="place6_title">Качели над океаном</h3>
+          <p>Самые северные панорамные качели в России, установленные прямо на берегу Баренцева моря в 2017 году. Качаться над волнами Северного Ледовитого океана — одно из самых запоминающихся ощущений в Териберке. Рядом — песчаный пляж Старой Териберки с арт-объектами.</p>
+          <div class="place-tags">
+            <span>Развлечение</span>
+            <span>Старая Териберка</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="place-card" data-reveal data-delay="300">
+        <div class="place-visual">
+          <canvas class="place-canvas" data-scene="fjord"></canvas>
+          <div class="place-badge" data-i18n="badge_panorama">Панорама</div>
+        </div>
+        <div class="place-body">
+          <h3 data-i18n="place7_title">Териберский фьорд</h3>
+          <p>Скалистый берег, покрытый низкорослой травой и укутанный туманом, навевает мысли о Норвегии. Дух захватывает от вида могучих скал, омываемых морскими волнами. Бухта защищает местные суда от штормов и создаёт живописный рельеф, когда с одного берега видишь другой.</p>
+          <div class="place-tags">
+            <span>Пейзаж</span>
+            <span>Панорамные виды</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="place-card" data-reveal data-delay="100">
+        <div class="place-visual">
+          <canvas class="place-canvas" data-scene="lighthouse"></canvas>
+          <div class="place-badge" data-i18n="badge_lighthouse">Маяк</div>
+        </div>
+        <div class="place-body">
+          <h3 data-i18n="place8_title">Териберский маяк</h3>
+          <p>Действующий маяк на мысе Териберский — один из крайних северных маяков России. Путь к маяку пролегает через тундру с видом на открытый океан. Маршрут непростой, но вознаграждает потрясающими видами на бескрайнее Баренцево море и арктическое побережье.</p>
+          <div class="place-tags">
+            <span>Треккинг</span>
+            <span>Лето</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="place-card" data-reveal data-delay="200">
+        <div class="place-visual">
+          <canvas class="place-canvas" data-scene="battery"></canvas>
+          <div class="place-badge" data-i18n="badge_military">Военная история</div>
+        </div>
+        <div class="place-body">
+          <h3 data-i18n="place9_title">Батарея береговой обороны №199</h3>
+          <p>Артиллерийская батарея, возведённая в конце 30-х годов для защиты Териберки от вражеского десанта и кораблей во время Великой Отечественной войны. Редкий турист добирается до неё, но открывающиеся виды с позиций — одни из самых величественных на всём побережье.</p>
+          <div class="place-tags">
+            <span>ВОВ</span>
+            <span>Заполярье</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ INFO BANNER ═══════════ -->
+  <div class="info-banner" data-reveal>
+    <div>
+      <h3 data-i18n="info_title">Териберка в цифрах</h3>
+      <p>Село основано в XVI веке, впервые упоминается в 1523 году. Расположено на северо-восточном побережье Кольского полуострова, за полярным кругом. Климат арктический: холодная зима с ноября по апрель, короткое лето с июня по август. В тундре обитают лемминги, песцы, а в море — тюлени, киты и косатки.</p>
+    </div>
+    <div class="info-facts">
+      <div class="info-fact">
+        <div class="big">−35°</div>
+        <div class="small">Зимний минимум</div>
+      </div>
+      <div class="info-fact">
+        <div class="big">72</div>
+        <div class="small">Полярных дня</div>
+      </div>
+      <div class="info-fact">
+        <div class="big">42</div>
+        <div class="small">Полярных ночи</div>
+      </div>
+      <div class="info-fact">
+        <div class="big">~130 км</div>
+        <div class="small">От Мурманска</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ EXCURSIONS ═══════════ -->
+  <div id="excursions">
+    <div class="section-header">
+      <div>
+        <div class="section-num">02</div>
+        <h2 data-i18n="exc_title" data-i18n-html="1">Маршруты<br>к северу</h2>
+      </div>
+      <div class="desc" data-i18n="exc_desc">Каждая экскурсия — погружение в первозданную красоту Арктики. Все маршруты включают трансфер из Мурманска.</div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="excursions">
+
+      <div class="exc-card" data-reveal data-delay="0">
+        <div class="exc-icon">🌊</div>
+        <div class="exc-tag" data-i18n="etag_water">Водный маршрут</div>
+        <h3 data-i18n="exc1_title">Батарейский водопад и пляж драконьих яиц</h3>
+        <p>Путешествие к самому мощному водопаду побережья Баренцева моря через природный парк «Териберка». По деревянным настилам вы дойдёте до каменного пляжа, а затем — к каскадам воды, обрушивающимся в океан.</p>
+        <div class="exc-meta">
+          <div class="exc-meta-item">
+            <div class="meta-val">4 ч</div>
+            <div class="meta-label" data-i18n="meta_duration">Длительность</div>
+          </div>
+          <div class="exc-meta-item">
+            <div class="meta-val">7 км</div>
+            <div class="meta-label" data-i18n="meta_route">Маршрут</div>
+          </div>
+          <div class="exc-meta-item exc-price">
+            <div class="meta-val">4 500 ₽</div>
+            <div class="meta-label" data-i18n="meta_perperson">с человека</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exc-card" data-reveal data-delay="150">
+        <div class="exc-icon">✨</div>
+        <div class="exc-tag" data-i18n="etag_night">Ночная охота</div>
+        <h3 data-i18n="exc2_title">Охота за северным сиянием</h3>
+        <p>Выезд на внедорожниках в тундру, вдали от светового загрязнения. Горячий чай и арктический пикник у костра, пока небо взрывается зелёным и фиолетовым пламенем авроры. Сияние не по щелчку — но шансы здесь максимальны.</p>
+        <div class="exc-meta">
+          <div class="exc-meta-item">
+            <div class="meta-val">5 ч</div>
+            <div class="meta-label">Длительность</div>
+          </div>
+          <div class="exc-meta-item">
+            <div class="meta-val">Сен–Мар</div>
+            <div class="meta-label" data-i18n="meta_season">Сезон</div>
+          </div>
+          <div class="exc-meta-item exc-price">
+            <div class="meta-val">6 000 ₽</div>
+            <div class="meta-label">с человека</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exc-card" data-reveal data-delay="300">
+        <div class="exc-icon">🐋</div>
+        <div class="exc-tag" data-i18n="etag_sea">Морская экспедиция</div>
+        <h3 data-i18n="exc3_title">Встреча с китами в Баренцевом море</h3>
+        <p>Выход в открытое море на катере. Горбатые киты, косатки и малые полосатики в естественной среде обитания. При внимательном наблюдении можно увидеть тюленей. На дне — целые поля цветных морских ежей.</p>
+        <div class="exc-meta">
+          <div class="exc-meta-item">
+            <div class="meta-val">6 ч</div>
+            <div class="meta-label">Длительность</div>
+          </div>
+          <div class="exc-meta-item">
+            <div class="meta-val">Апр–Ноя</div>
+            <div class="meta-label">Сезон</div>
+          </div>
+          <div class="exc-meta-item exc-price">
+            <div class="meta-val">12 000 ₽</div>
+            <div class="meta-label">с человека</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exc-card" data-reveal data-delay="0">
+        <div class="exc-icon">🏔️</div>
+        <div class="exc-tag" data-i18n="etag_trek">Треккинг</div>
+        <h3 data-i18n="exc4_title">Тундра, сопки и арктический фьорд</h3>
+        <p>Поход по арктической тундре с панорамными видами на океан. Мхи, лишайники, каменные сады и абсолютная тишина. Маршрут включает Териберский фьорд — скалистый берег, напоминающий норвежские пейзажи.</p>
+        <div class="exc-meta">
+          <div class="exc-meta-item">
+            <div class="meta-val">8 ч</div>
+            <div class="meta-label">Длительность</div>
+          </div>
+          <div class="exc-meta-item">
+            <div class="meta-val">15 км</div>
+            <div class="meta-label">Маршрут</div>
+          </div>
+          <div class="exc-meta-item exc-price">
+            <div class="meta-val">5 500 ₽</div>
+            <div class="meta-label">с человека</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exc-card" data-reveal data-delay="150">
+        <div class="exc-icon">🪨</div>
+        <div class="exc-tag" data-i18n="etag_gastro">Гастро-тур</div>
+        <h3 data-i18n="exc5_title">Вкус Арктики</h3>
+        <p>Дегустация свежайших морепродуктов прямо на берегу: морские ежи, камчатский краб, гребешки. Рыбаки расскажут о промысле, а повар приготовит блюда у вас на глазах. Всё это — под шум волн Баренцева моря.</p>
+        <div class="exc-meta">
+          <div class="exc-meta-item">
+            <div class="meta-val">3 ч</div>
+            <div class="meta-label">Длительность</div>
+          </div>
+          <div class="exc-meta-item">
+            <div class="meta-val">до 8</div>
+            <div class="meta-label" data-i18n="meta_people">Человек</div>
+          </div>
+          <div class="exc-meta-item exc-price">
+            <div class="meta-val">8 000 ₽</div>
+            <div class="meta-label">с человека</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exc-card" data-reveal data-delay="300">
+        <div class="exc-icon">🛷</div>
+        <div class="exc-tag" data-i18n="etag_winter">Зимний экстрим</div>
+        <h3 data-i18n="exc6_title">Снегоходы по тундре</h3>
+        <p>Экспедиция на снегоходах через белоснежную тундру — 80 км адреналина. Замёрзшие озёра, заснеженные сопки и ледяные скульптуры. Зимой Териберка превращается в другую планету — суровую и завораживающую.</p>
+        <div class="exc-meta">
+          <div class="exc-meta-item">
+            <div class="meta-val">4 ч</div>
+            <div class="meta-label">Длительность</div>
+          </div>
+          <div class="exc-meta-item">
+            <div class="meta-val">Дек–Апр</div>
+            <div class="meta-label">Сезон</div>
+          </div>
+          <div class="exc-meta-item exc-price">
+            <div class="meta-val">9 000 ₽</div>
+            <div class="meta-label">с человека</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ NATURE ═══════════ -->
+  <section class="nature-section" id="nature">
+    <div class="nature-text" data-reveal>
+      <div class="label" data-i18n="nature_label">Дикая природа</div>
+      <h2 data-i18n="nature_title">Арктика без фильтров</h2>
+      <p>Териберка стоит на северо-восточном побережье Кольского полуострова. Климат и растительность здесь типичные для южных границ арктического региона: редкие кустарники, толстые моховые ковры и лишайники — главные представители скудной флоры.</p>
+      <p>Фауна удивительно разнообразна: лемминги, горностаи, песцы, северные олени. В море — тюлени, горбатые киты, косатки и множество рыбы. Рыбалка на Кольском полуострове — одно из традиционных направлений туризма.</p>
+      <p>Океанские штормы, приливы и отливы, закаты, лунные восходы и полярные сияния — Териберка подарит впечатления, которых нет больше нигде в мире.</p>
+    </div>
+    <div class="nature-visual">
+      <canvas id="auroraCanvas"></canvas>
+    </div>
+  </section>
+
+  <!-- ═══════════ MURMANSK REGION ═══════════ -->
+  <div id="region">
+    <div class="section-header">
+      <div>
+        <div class="section-num">03</div>
+        <h2 data-i18n="region_title" data-i18n-html="1">Кольский<br>полуостров</h2>
+      </div>
+      <div class="desc">Териберка — лишь одна из жемчужин Мурманской области. Совместите поездку с другими уникальными местами Кольского полуострова.</div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="region-grid">
+
+      <div class="region-card" data-reveal data-delay="0">
+        <div class="region-icon">⛰️</div>
+        <div class="region-tag" data-i18n="rtag1">Горный массив</div>
+        <h3 data-i18n="reg1_title">Хибины</h3>
+        <p>Главная достопримечательность Кольского полуострова — древний горный массив за Полярным кругом с крутыми склонами и небольшими ледниками. Летом — треккинг к горным озёрам и хрустальным водопадам. Зимой — горнолыжные спуски, скитур и фрирайд по нехоженному пухляку.</p>
+        <div class="distance">От Мурманска: <strong>~200 км</strong> · Города: Кировск, Апатиты</div>
+      </div>
+
+      <div class="region-card" data-reveal data-delay="100">
+        <div class="region-icon">🔮</div>
+        <div class="region-tag" data-i18n="rtag2">Мистическое озеро</div>
+        <h3 data-i18n="reg2_title">Сейдозеро</h3>
+        <p>Заполярная Шамбала в сердце Ловозерских тундр. Священное озеро саамов с таинственным наскальным изображением великана Куйвы высотой 74 метра. Учёные спорят о происхождении артефактов — то ли древняя цивилизация, то ли причудливые природные останцы. Входит в заказник «Сейдъявврь».</p>
+        <div class="distance">От Мурманска: <strong>~180 км</strong> · через п. Ревда</div>
+      </div>
+
+      <div class="region-card" data-reveal data-delay="200">
+        <div class="region-icon">🦌</div>
+        <div class="region-tag" data-i18n="rtag3">Саамская культура</div>
+        <h3 data-i18n="reg3_title">Село Ловозеро</h3>
+        <p>Столица российских саамов — коренного народа Кольского полуострова. Здесь можно познакомиться с культурой, попробовать оленину, услышать древние шаманские легенды и отправиться на катере к Сейдозеру. Рядом — гора Аллуайв с панорамой Хибин и цирки Раслака.</p>
+        <div class="distance">От Мурманска: <strong>~170 км</strong> · по трассе «Кола»</div>
+      </div>
+
+      <div class="region-card" data-reveal data-delay="0">
+        <div class="region-icon">🌊</div>
+        <div class="region-tag" data-i18n="rtag4">Полуостров</div>
+        <h3 data-i18n="reg4_title">Полуострова Рыбачий и Средний</h3>
+        <p>Крайняя северная точка Европейской России. Суровые ландшафты, военные укрепления времён ВОВ, невероятные виды на Баренцево море. Требуется погранпропуск. Сюда едут рыбаки, дайверы и диггеры — настоящая «терра инкогнита» Заполярья.</p>
+        <div class="distance">От Мурманска: <strong>~140 км</strong> · Погранпропуск</div>
+      </div>
+
+      <div class="region-card" data-reveal data-delay="100">
+        <div class="region-icon">💎</div>
+        <div class="region-tag" data-i18n="rtag5">Геология</div>
+        <h3 data-i18n="reg5_title">Аметистовый берег</h3>
+        <p>Уникальное месторождение аметистов на берегу Белого моря — одно из немногих мест в мире, где полудрагоценные камни буквально россыпью лежат прямо на пляже. Фиолетовые кристаллы в скальных жилах — фантастическое зрелище для любителей минералогии.</p>
+        <div class="distance">От Мурманска: <strong>~500 км</strong> · База: Варзуга</div>
+      </div>
+
+      <div class="region-card" data-reveal data-delay="200">
+        <div class="region-icon">🏙️</div>
+        <div class="region-tag" data-i18n="rtag6">Столица Заполярья</div>
+        <h3 data-i18n="reg6_title">Мурманск</h3>
+        <p>Крупнейший в мире город за Полярным кругом, незамерзающий порт. Атомный ледокол «Ленин», мемориал «Алёша» с видом на Кольский залив, Семёновское озеро. Стартовая точка большинства экспедиций по области. Отсюда до Териберки — 2,5 часа на машине.</p>
+        <div class="distance">Стартовая точка всех маршрутов</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ SEASONS ═══════════ -->
+  <div id="seasons">
+    <div class="section-header">
+      <div>
+        <div class="section-num">04</div>
+        <h2 data-i18n="seasons_title" data-i18n-html="1">Четыре лица<br>севера</h2>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+    <div class="seasons">
+      <div class="season-card" data-reveal data-delay="0">
+        <div class="season-num">01</div>
+        <div class="season-name" data-i18n="s1_name">Полярная ночь</div>
+        <div class="season-period">Декабрь — Январь</div>
+        <div class="season-desc">Солнце не поднимается над горизонтом 42 дня. Зато северное сияние — практически каждую ясную ночь. Магия тишины, темноты и снежных пейзажей.</div>
+        <div class="season-highlights">
+          <span>Северное сияние</span>
+          <span>Снегоходы</span>
+          <span>Хаски</span>
+        </div>
+      </div>
+      <div class="season-card" data-reveal data-delay="100">
+        <div class="season-num">02</div>
+        <div class="season-name" data-i18n="s2_name">Ледяная весна</div>
+        <div class="season-period">Март — Май</div>
+        <div class="season-desc">Океан ещё в льдах, но свет возвращается. Лучшее время для снегоходных экспедиций, подлёдной рыбалки на треску и сноукайтинга в тундре.</div>
+        <div class="season-highlights">
+          <span>Подлёдная рыбалка</span>
+          <span>Сноукайт</span>
+          <span>Ледяные скульптуры</span>
+        </div>
+      </div>
+      <div class="season-card" data-reveal data-delay="200">
+        <div class="season-num">03</div>
+        <div class="season-name" data-i18n="s3_name">Полярный день</div>
+        <div class="season-period">Июнь — Июль</div>
+        <div class="season-desc">Солнце не заходит 72 дня. Тундра покрывается цветами, киты подходят к берегу, водопады набирают силу. Идеально для треккинга и морских прогулок.</div>
+        <div class="season-highlights">
+          <span>Киты</span>
+          <span>Треккинг</span>
+          <span>Водопады</span>
+          <span>Белые ночи</span>
+        </div>
+      </div>
+      <div class="season-card" data-reveal data-delay="300">
+        <div class="season-num">04</div>
+        <div class="season-name" data-i18n="s4_name">Золотая осень</div>
+        <div class="season-period">Сентябрь — Ноябрь</div>
+        <div class="season-desc">Тундра горит красным и золотым. Начинается сезон сияний, первые штормы бьют о скалы — невероятная мощь океана. Лучшее время для фотографов.</div>
+        <div class="season-highlights">
+          <span>Штормы</span>
+          <span>Сияния</span>
+          <span>Краски тундры</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ HOW TO GET ═══════════ -->
+  <div>
+    <div class="section-header">
+      <div>
+        <div class="section-num">05</div>
+        <h2 data-i18n="howto_title">Как добраться</h2>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+    <div class="how-to-get">
+      <div class="route-card" data-reveal data-delay="0">
+        <div class="route-icon">✈️</div>
+        <h4 data-i18n="rt1_title">Самолёт + авто</h4>
+        <p>Перелёт до Мурманска (2,5 ч из Москвы), затем аренда машины или трансфер. Дорога до Териберки — около 130 км, заасфальтирована частично. Зимой рекомендуется внедорожник. Заправок в Териберке нет — запасайтесь бензином в Мурманске.</p>
+      </div>
+      <div class="route-card" data-reveal data-delay="100">
+        <div class="route-icon">🚌</div>
+        <h4 data-i18n="rt2_title">Рейсовый автобус</h4>
+        <p>Из Мурманска ходит рейсовый автобус до Териберки — в пути около 3–4 часов. Расписание меняется по сезонам, рекомендуем уточнять. Можно съездить одним днём или остаться на ночёвку в одной из местных гостиниц.</p>
+      </div>
+      <div class="route-card" data-reveal data-delay="200">
+        <div class="route-icon">🚙</div>
+        <h4 data-i18n="rt3_title">Экскурсия с трансфером</h4>
+        <p>Самый удобный вариант — организованная экскурсия из Мурманска. Трансфер на внедорожнике, гид-знаток, горячий чай в термосе и никаких забот о навигации по заснеженным дорогам. Мы берём логистику на себя.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ GUIDES ═══════════ -->
+  <div id="guides">
+    <div class="section-header">
+      <div>
+        <div class="section-num">06</div>
+        <h2 data-i18n="guides_title">Наши гиды</h2>
+      </div>
+      <div class="desc">Команда людей, влюблённых в Арктику. Каждый знает Кольский полуостров не по путеводителям, а по тысячам пройдённых километров по тундре, фьордам и заснеженным сопкам.</div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="guides-grid">
+
+      <div class="guide-card lead" data-reveal data-delay="0">
+        <div class="guide-avatar">
+          <canvas class="guide-canvas" data-guide="sd"></canvas>
+          <div class="initials">СД</div>
+        </div>
+        <div class="guide-body">
+          <h3 data-i18n="g1_name">Сергей Диденко</h3>
+          <div class="guide-role" data-i18n="g1_role">Главный гид · Основатель</div>
+          <p>Руководитель экспедиционной команды, за плечами — сотни маршрутов по Заполярью. Знает каждую тропу к Батарейскому водопаду, каждый приют у фьорда и лучшие точки для наблюдения за китами и северным сиянием. Сертифицированный гид по арктическому туризму.</p>
+          <div class="guide-specialties">
+            <span>Северное сияние</span>
+            <span>Киты</span>
+            <span>Треккинг</span>
+            <span>Фотография</span>
+          </div>
+          <div class="guide-stats">
+            <div class="guide-stat">
+              <div class="g-val">12 лет</div>
+              <div class="g-label">Опыт</div>
+            </div>
+            <div class="guide-stat">
+              <div class="g-val">800+</div>
+              <div class="g-label">Экскурсий</div>
+            </div>
+            <div class="guide-stat">
+              <div class="g-val">5 000+</div>
+              <div class="g-label">Гостей</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-card" data-reveal data-delay="150">
+        <div class="guide-avatar">
+          <canvas class="guide-canvas" data-guide="ak"></canvas>
+          <div class="initials">АК</div>
+        </div>
+        <div class="guide-body">
+          <h3 data-i18n="g2_name">Анна Кольцова</h3>
+          <div class="guide-role" data-i18n="g2_role">Гид-натуралист</div>
+          <p>Биолог по образованию, специалист по арктической экосистеме. Проводит морские экспедиции за китами и экологические походы по тундре. Руководит программой наблюдения за миграцией морских млекопитающих в акватории Баренцева моря.</p>
+          <div class="guide-specialties">
+            <span>Морские экспедиции</span>
+            <span>Экология</span>
+            <span>Фауна Арктики</span>
+          </div>
+          <div class="guide-stats">
+            <div class="guide-stat">
+              <div class="g-val">8 лет</div>
+              <div class="g-label">Опыт</div>
+            </div>
+            <div class="guide-stat">
+              <div class="g-val">400+</div>
+              <div class="g-label">Экскурсий</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-card" data-reveal data-delay="300">
+        <div class="guide-avatar">
+          <canvas class="guide-canvas" data-guide="dm"></canvas>
+          <div class="initials">ДМ</div>
+        </div>
+        <div class="guide-body">
+          <h3 data-i18n="g3_name">Дмитрий Мурашов</h3>
+          <div class="guide-role" data-i18n="g3_role">Гид-историк</div>
+          <p>Краевед, знаток военной истории Заполярья и саамской культуры. Ведёт экскурсии к батарее береговой обороны, кладбищу кораблей и в село Ловозеро. Автор статей об истории Териберки и Кольского полуострова.</p>
+          <div class="guide-specialties">
+            <span>История ВОВ</span>
+            <span>Саамская культура</span>
+            <span>Ловозеро</span>
+          </div>
+          <div class="guide-stats">
+            <div class="guide-stat">
+              <div class="g-val">6 лет</div>
+              <div class="g-label">Опыт</div>
+            </div>
+            <div class="guide-stat">
+              <div class="g-val">300+</div>
+              <div class="g-label">Экскурсий</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ REVIEWS ═══════════ -->
+  <div id="reviews">
+    <div class="section-header">
+      <div>
+        <div class="section-num">07</div>
+        <h2 data-i18n="reviews_title" data-i18n-html="1">Отзывы<br>путешественников</h2>
+      </div>
+      <div class="desc" data-i18n="reviews_desc">Истории тех, кто уже побывал на краю земли. Настоящие впечатления, не отредактированные и не приукрашенные — как сама Арктика.</div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="reviews-container">
+      <div class="reviews-track" id="reviewsTrack">
+
+        <div class="review-card" data-reveal data-delay="0">
+          <div class="review-stars">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+          </div>
+          <div class="review-excursion" data-i18n="rev1_exc">Охота за северным сиянием</div>
+          <div class="review-text" data-i18n="rev1_text">Сергей вывез нас в тундру в полной темноте. Мы пили горячий чай, и вдруг небо взорвалось зелёным. Я плакала от красоты. Это было самое сильное впечатление в моей жизни — и я много где побывала.</div>
+          <div class="review-author">
+            <div class="review-avatar-circle">МК</div>
+            <div class="review-author-info">
+              <div class="review-name" data-i18n="rev1_name">Мария Козлова</div>
+              <div class="review-origin" data-i18n="rev1_origin">Москва · Январь 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" data-reveal data-delay="100">
+          <div class="review-stars">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+          </div>
+          <div class="review-excursion" data-i18n="rev2_exc">Встреча с китами</div>
+          <div class="review-text" data-i18n="rev2_text">Когда горбатый кит вынырнул в 30 метрах от нашего катера и ударил хвостом — весь катер замолчал. Потом все начали кричать от восторга. Анна рассказала нам всё об их миграции. Невероятный день.</div>
+          <div class="review-author">
+            <div class="review-avatar-circle">АП</div>
+            <div class="review-author-info">
+              <div class="review-name" data-i18n="rev2_name">Алексей Петров</div>
+              <div class="review-origin" data-i18n="rev2_origin">Санкт-Петербург · Август 2025</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" data-reveal data-delay="200">
+          <div class="review-stars">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+          </div>
+          <div class="review-excursion" data-i18n="rev3_exc">巴伦支海之旅</div>
+          <div class="review-text" data-i18n="rev3_text">我们从北京来到这个世界尽头的小村庄。站在北冰洋的岸边，看着极光在天空中舞动，我觉得这一切都像一场梦。谢尔盖是一位出色的向导，即使语言不同，他的热情也感染了所有人。</div>
+          <div class="review-author">
+            <div class="review-avatar-circle">王</div>
+            <div class="review-author-info">
+              <div class="review-name" data-i18n="rev3_name">王小明</div>
+              <div class="review-origin" data-i18n="rev3_origin">北京 · 2025年12月</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" data-reveal data-delay="300">
+          <div class="review-stars">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+          </div>
+          <div class="review-excursion" data-i18n="rev4_exc">Гастро-тур «Вкус Арктики»</div>
+          <div class="review-text" data-i18n="rev4_text">Морские ежи прямо из океана, гребешки на костре, камчатский краб — всё это под аккомпанемент волн Баренцева моря. Рыбаки рассказывали истории, повар колдовал у огня. Лучший ужин в моей жизни, без преувеличений.</div>
+          <div class="review-author">
+            <div class="review-avatar-circle">ОС</div>
+            <div class="review-author-info">
+              <div class="review-name" data-i18n="rev4_name">Ольга Смирнова</div>
+              <div class="review-origin" data-i18n="rev4_origin">Екатеринбург · Сентябрь 2025</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" data-reveal data-delay="150">
+          <div class="review-stars">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+          </div>
+          <div class="review-excursion" data-i18n="rev5_exc">Тундра и снегоходы</div>
+          <div class="review-text" data-i18n="rev5_text">Мы с друзьями приехали на снегоходах в полную тишину. Белоснежная тундра до горизонта, ни звука, только ветер. А вечером — сияние прямо над головой. Териберка навсегда в моём сердце. Вернёмся обязательно.</div>
+          <div class="review-author">
+            <div class="review-avatar-circle">ДЧ</div>
+            <div class="review-author-info">
+              <div class="review-name" data-i18n="rev5_name">Дмитрий Чернов</div>
+              <div class="review-origin" data-i18n="rev5_origin">Новосибирск · Февраль 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" data-reveal data-delay="250">
+          <div class="review-stars">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+          </div>
+          <div class="review-excursion" data-i18n="rev6_exc">龙蛋海滩与瀑布</div>
+          <div class="review-text" data-i18n="rev6_text">从上海飞了将近20个小时来到这里，但一切都值得。龙蛋海滩的巨石令人震撼，瀑布直接流入北冰洋的景象终生难忘。捷里别尔卡是真正的地球尽头，强烈推荐给所有热爱自然的人。</div>
+          <div class="review-author">
+            <div class="review-avatar-circle">李</div>
+            <div class="review-author-info">
+              <div class="review-name" data-i18n="rev6_name">李静雯</div>
+              <div class="review-origin" data-i18n="rev6_origin">上海 · 2025年7月</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="reviews-nav">
+        <button id="revPrev" aria-label="Предыдущий отзыв">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button id="revNext" aria-label="Следующий отзыв">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CTA ═══════════ -->
+  <section class="cta-section" id="contact">
+    <h2 data-i18n="cta_title" data-i18n-html="1">Готовы к <em>путешествию</em><br>на край земли?</h2>
+    <p data-i18n="cta_sub" style="color:var(--frost); opacity:0.5; max-width:500px; margin:0 auto; font-size:0.85rem; line-height:1.8;">Свяжитесь с нами, и мы подберём идеальный маршрут под ваши даты, бюджет и мечты об Арктике. Териберка, Хибины, Сейдозеро — или всё сразу.</p>
+    <div class="cta-contacts">
+      <a class="cta-contact-link tg" href="https://t.me/teriberka_travel" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M11.944 0A12 12 0 1 0 24 12.056A12.014 12.014 0 0 0 11.944 0Zm5.654 8.26l-1.846 8.694a.9.9 0 0 1-1.308.555l-2.905-2.142l-1.4 1.349a.3.3 0 0 1-.477-.037l.027-2.559L15.3 9.108a.375.375 0 0 0-.453-.6L8.28 13.17l-2.867-.925a.6.6 0 0 1-.008-1.124l11.3-4.35a.6.6 0 0 1 .893.488Z"/></svg>
+        <span data-i18n="cta_tg">Написать в Telegram</span>
+      </a>
+      <a class="cta-contact-link phone" href="tel:+79211234567">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span data-i18n="cta_phone">+7 921 123-45-67</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <span data-i18n="footer_copy">© 2026 Териберка Экспедиции</span>
+    <span data-i18n="footer_loc">Кольский п-ов, Мурманская обл., Россия</span>
+    <a href="mailto:info@teriberka.travel">info@teriberka.travel</a>
+  </footer>
+
+</div>
+
+<!-- Accessibility Toggle -->
+<button class="a11y-toggle" id="a11yBtn" aria-label="Включить версию для слабовидящих">
+  <span class="tooltip">Версия для слабовидящих</span><!-- a11y tooltip translated via JS -->
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+</button>
+
+<!-- Scroll Buttons -->
+<div class="scroll-fab-group">
+  <button class="scroll-fab" id="scrollBottomBtn" aria-label="Вниз" title="Вниз">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </button>
+  <button class="scroll-fab" id="scrollTopBtn" aria-label="Наверх" title="Наверх">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"/>
+    </svg>
+  </button>
+</div>
+
+<!-- Contact FABs -->
+<div class="contact-fab-group">
+  <a class="contact-fab tg" href="https://t.me/teriberka_travel" target="_blank" rel="noopener" aria-label="Написать в Telegram">
+    <span class="fab-label" data-i18n="fab_tg">Telegram</span>
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 1 0 24 12.056A12.014 12.014 0 0 0 11.944 0Zm5.654 8.26l-1.846 8.694a.9.9 0 0 1-1.308.555l-2.905-2.142l-1.4 1.349a.3.3 0 0 1-.477-.037l.027-2.559L15.3 9.108a.375.375 0 0 0-.453-.6L8.28 13.17l-2.867-.925a.6.6 0 0 1-.008-1.124l11.3-4.35a.6.6 0 0 1 .893.488Z"/></svg>
+  </a>
+  <a class="contact-fab phone" href="tel:+79211234567" aria-label="Позвонить">
+    <span class="fab-label" data-i18n="fab_phone">+7 921 123-45-67</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+    </svg>
+  </a>
+</div>
+
+<!-- ═══════════ THREE.JS ═══════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ==============================
+// MAIN 3D SCENE
+// ==============================
+(function() {
+  const canvas = document.getElementById('scene3d');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x0a0f1a, 0.018);
+
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 500);
+  camera.position.set(0, 4, 18);
+
+  scene.add(new THREE.AmbientLight(0x1a2240, 0.8));
+
+  const auroraLight1 = new THREE.PointLight(0x4aeaad, 1.5, 80);
+  auroraLight1.position.set(0, 20, -10);
+  scene.add(auroraLight1);
+
+  const auroraLight2 = new THREE.PointLight(0x818cf8, 1, 60);
+  auroraLight2.position.set(-15, 15, -5);
+  scene.add(auroraLight2);
+
+  const moonLight = new THREE.DirectionalLight(0xc1cde0, 0.3);
+  moonLight.position.set(10, 25, 15);
+  scene.add(moonLight);
+
+  // Terrain
+  const terrainGeo = new THREE.PlaneGeometry(100, 100, 140, 140);
+  const tp = terrainGeo.attributes.position;
+  for (let i = 0; i < tp.count; i++) {
+    const x = tp.getX(i), y = tp.getY(i);
+    tp.setZ(i, Math.sin(x*0.12)*Math.cos(y*0.08)*2 + Math.sin(x*0.04+y*0.06)*3 + Math.random()*0.25);
+  }
+  terrainGeo.computeVertexNormals();
+  const terrain = new THREE.Mesh(terrainGeo, new THREE.MeshStandardMaterial({ color:0x1a2540, roughness:0.9, metalness:0.1, flatShading:true }));
+  terrain.rotation.x = -Math.PI/2; terrain.position.y = -3;
+  scene.add(terrain);
+
+  // Water
+  const water = new THREE.Mesh(
+    new THREE.PlaneGeometry(150,150),
+    new THREE.MeshStandardMaterial({ color:0x0a1628, roughness:0.15, metalness:0.85, transparent:true, opacity:0.85 })
+  );
+  water.rotation.x = -Math.PI/2; water.position.y = -2.5;
+  scene.add(water);
+
+  // Mountains
+  const mMat = new THREE.MeshStandardMaterial({ color:0x141e35, roughness:1, flatShading:true });
+  for (let i = 0; i < 15; i++) {
+    const h = 4+Math.random()*12, r = 3+Math.random()*6;
+    const m = new THREE.Mesh(new THREE.ConeGeometry(r,h,5+Math.floor(Math.random()*4)), mMat);
+    m.position.set(-45+Math.random()*90, h*0.35-3, -25-Math.random()*25);
+    m.rotation.y = Math.random()*Math.PI;
+    scene.add(m);
+  }
+
+  // Snow
+  const sCount = 3500;
+  const sGeo = new THREE.BufferGeometry();
+  const sPos = new Float32Array(sCount*3);
+  const sVel = [];
+  for (let i=0;i<sCount;i++) {
+    sPos[i*3]=(Math.random()-0.5)*100;
+    sPos[i*3+1]=Math.random()*45;
+    sPos[i*3+2]=(Math.random()-0.5)*100;
+    sVel.push({y:0.01+Math.random()*0.03, x:(Math.random()-0.5)*0.005, d:Math.random()*Math.PI*2});
+  }
+  sGeo.setAttribute('position', new THREE.BufferAttribute(sPos,3));
+  const snow = new THREE.Points(sGeo, new THREE.PointsMaterial({ color:0xe8edf5, size:0.07, transparent:true, opacity:0.45, sizeAttenuation:true }));
+  scene.add(snow);
+
+  // Aurora ribbons
+  const ribbons = [];
+  function makeRibbon(yBase, zBase, color, amp) {
+    const pts = [];
+    for (let i=0;i<=70;i++) {
+      const t=(i/70)*Math.PI*2;
+      pts.push(new THREE.Vector3(-35+i, yBase+Math.sin(t*2)*amp+Math.sin(t*5)*0.5, zBase+Math.cos(t*3)*2));
+    }
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const mesh = new THREE.Mesh(
+      new THREE.TubeGeometry(curve,130,0.3,8,false),
+      new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.12, side:THREE.DoubleSide })
+    );
+    scene.add(mesh);
+    return { mesh, yBase, zBase, amp, color };
+  }
+  ribbons.push(makeRibbon(14,-20,0x4aeaad,3));
+  ribbons.push(makeRibbon(16,-22,0x2dd4bf,2.5));
+  ribbons.push(makeRibbon(18,-18,0x818cf8,2));
+  ribbons.push(makeRibbon(12,-25,0x38bdf8,3.5));
+  ribbons.push(makeRibbon(20,-15,0x4aeaad,1.5));
+
+  // Ice rocks
+  const iceRocks = [];
+  const iceMat = new THREE.MeshStandardMaterial({ color:0x8aaabe, roughness:0.3, metalness:0.2, transparent:true, opacity:0.5 });
+  for (let i=0;i<10;i++) {
+    const m = new THREE.Mesh(new THREE.DodecahedronGeometry(0.3+Math.random()*0.6,0), iceMat);
+    m.position.set((Math.random()-0.5)*40, -2.3+Math.random()*0.3, (Math.random()-0.5)*25);
+    m.rotation.set(Math.random(),Math.random(),Math.random());
+    scene.add(m);
+    iceRocks.push({mesh:m, phase:Math.random()*Math.PI*2, speed:0.3+Math.random()*0.5});
+  }
+
+  // Stars
+  const stGeo = new THREE.BufferGeometry();
+  const stPos = new Float32Array(1000*3);
+  for (let i=0;i<1000;i++) {
+    const r=60+Math.random()*50, th=Math.random()*Math.PI*0.5, ph=Math.random()*Math.PI*2;
+    stPos[i*3]=r*Math.sin(th)*Math.cos(ph);
+    stPos[i*3+1]=r*Math.cos(th)+10;
+    stPos[i*3+2]=r*Math.sin(th)*Math.sin(ph);
+  }
+  stGeo.setAttribute('position', new THREE.BufferAttribute(stPos,3));
+  scene.add(new THREE.Points(stGeo, new THREE.PointsMaterial({ color:0xe8edf5, size:0.12, transparent:true, opacity:0.6 })));
+
+  // Rings
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(7,0.015,16,200),
+    new THREE.MeshBasicMaterial({ color:0x4aeaad, transparent:true, opacity:0.08 })
+  );
+  ring.rotation.x=Math.PI*0.45; ring.position.y=10; ring.position.z=-15;
+  scene.add(ring);
+
+  let mx=0,my=0,tmx=0,tmy=0;
+  document.addEventListener('mousemove',e=>{
+    tmx=(e.clientX/window.innerWidth-0.5)*2;
+    tmy=(e.clientY/window.innerHeight-0.5)*2;
+  });
+  let scrollY=0;
+  window.addEventListener('scroll',()=>{scrollY=window.scrollY;});
+  window.addEventListener('resize',()=>{
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    camera.aspect=window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    const t=clock.getElapsedTime();
+    const maxS=document.body.scrollHeight-window.innerHeight||1;
+    const sf=scrollY/maxS;
+
+    mx+=(tmx-mx)*0.03; my+=(tmy-my)*0.03;
+
+    camera.position.x=mx*2;
+    camera.position.y=4+my*0.5-sf*10;
+    camera.position.z=18-sf*6;
+    camera.lookAt(0,2-sf*6,-10);
+
+    // Aurora
+    ribbons.forEach((r,ri)=>{
+      const pts=[];
+      for(let i=0;i<=70;i++){
+        const tt=(i/70)*Math.PI*2;
+        pts.push(new THREE.Vector3(
+          -35+i,
+          r.yBase+Math.sin(tt*2+t*0.4+ri)*r.amp+Math.sin(tt*5+t*0.8)*0.7,
+          r.zBase+Math.cos(tt*3+t*0.3+ri*0.5)*2.5
+        ));
+      }
+      const nc=new THREE.CatmullRomCurve3(pts);
+      const ng=new THREE.TubeGeometry(nc,130,0.2+Math.sin(t*0.5+ri)*0.12,8,false);
+      r.mesh.geometry.dispose(); r.mesh.geometry=ng;
+      r.mesh.material.opacity=0.07+Math.sin(t*0.3+ri*2)*0.04;
+    });
+
+    auroraLight1.intensity=1.5+Math.sin(t*0.5)*0.5;
+    auroraLight1.position.x=Math.sin(t*0.2)*15;
+    auroraLight2.intensity=1+Math.sin(t*0.7+1)*0.4;
+
+    // Snow
+    const sp=snow.geometry.attributes.position;
+    for(let i=0;i<sCount;i++){
+      let y=sp.getY(i)-sVel[i].y;
+      let x=sp.getX(i)+Math.sin(t*0.5+sVel[i].d)*sVel[i].x;
+      if(y<-3){y=45;x=(Math.random()-0.5)*100;}
+      sp.setY(i,y); sp.setX(i,x);
+    }
+    sp.needsUpdate=true;
+
+    iceRocks.forEach(r=>{
+      r.mesh.position.y=-2.3+Math.sin(t*r.speed+r.phase)*0.15;
+      r.mesh.rotation.y+=0.002;
+    });
+
+    ring.rotation.z=t*0.05;
+
+    renderer.render(scene,camera);
+  }
+  animate();
+})();
+
+// ==============================
+// MINI AURORA CANVAS
+// ==============================
+(function() {
+  const c=document.getElementById('auroraCanvas');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  let w,h;
+  function resize(){
+    const rect=c.parentElement.getBoundingClientRect();
+    w=c.width=rect.width*window.devicePixelRatio;
+    h=c.height=rect.height*window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+  }
+  resize(); window.addEventListener('resize',resize);
+
+  function draw(time){
+    const t=time*0.001;
+    const cw=w/window.devicePixelRatio, ch=h/window.devicePixelRatio;
+    ctx.clearRect(0,0,cw,ch);
+    const skyGrad=ctx.createLinearGradient(0,0,0,ch);
+    skyGrad.addColorStop(0,'#0a0f1a'); skyGrad.addColorStop(1,'#12192e');
+    ctx.fillStyle=skyGrad; ctx.fillRect(0,0,cw,ch);
+
+    const bands=[
+      {color:'rgba(74,234,173,',y:ch*0.2,amp:30,freq:0.008,width:55},
+      {color:'rgba(45,212,191,',y:ch*0.28,amp:25,freq:0.01,width:45},
+      {color:'rgba(129,140,248,',y:ch*0.15,amp:35,freq:0.006,width:40},
+      {color:'rgba(56,189,248,',y:ch*0.35,amp:20,freq:0.012,width:35},
+    ];
+    bands.forEach((b,bi)=>{
+      ctx.beginPath();
+      for(let x=0;x<=cw;x+=2){
+        const y=b.y+Math.sin(x*b.freq+t*0.5+bi)*b.amp+Math.sin(x*b.freq*3+t*0.8)*8;
+        if(x===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      const grad=ctx.createLinearGradient(0,b.y-b.width,0,b.y+b.width);
+      grad.addColorStop(0,b.color+'0)');
+      grad.addColorStop(0.5,b.color+(0.15+Math.sin(t*0.3+bi)*0.05)+')');
+      grad.addColorStop(1,b.color+'0)');
+      ctx.strokeStyle=grad; ctx.lineWidth=b.width; ctx.stroke();
+    });
+
+    for(let i=0;i<60;i++){
+      const sx=(Math.sin(i*127.1)*0.5+0.5)*cw;
+      const sy=(Math.cos(i*311.7)*0.5+0.5)*ch*0.6;
+      ctx.beginPath(); ctx.arc(sx,sy,0.5+Math.sin(t+i*3)*0.3,0,Math.PI*2);
+      ctx.fillStyle=`rgba(232,237,245,${0.3+Math.sin(t*2+i)*0.2})`; ctx.fill();
+    }
+
+    // Ground
+    ctx.beginPath(); ctx.moveTo(0,ch);
+    for(let x=0;x<=cw;x+=3){
+      ctx.lineTo(x, ch*0.75+Math.sin(x*0.015)*15+Math.sin(x*0.04)*8);
+    }
+    ctx.lineTo(cw,ch); ctx.closePath();
+    ctx.fillStyle='#0a0f1a'; ctx.fill();
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// ==============================
+// PLACE CARD MINI CANVASES
+// ==============================
+(function() {
+  const canvases = document.querySelectorAll('.place-canvas');
+  canvases.forEach(c => {
+    const ctx = c.getContext('2d');
+    const scene = c.dataset.scene;
+    let w, h;
+    function resize() {
+      const rect = c.parentElement.getBoundingClientRect();
+      w = c.width = rect.width * Math.min(window.devicePixelRatio, 2);
+      h = c.height = rect.height * Math.min(window.devicePixelRatio, 2);
+    }
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(c.parentElement);
+
+    function draw(time) {
+      const t = time * 0.001;
+      const cw = w / Math.min(window.devicePixelRatio, 2);
+      const ch = h / Math.min(window.devicePixelRatio, 2);
+      ctx.setTransform(Math.min(window.devicePixelRatio, 2), 0, 0, Math.min(window.devicePixelRatio, 2), 0, 0);
+      ctx.clearRect(0, 0, cw, ch);
+
+      // Base gradient
+      const grad = ctx.createLinearGradient(0, 0, cw, ch);
+      grad.addColorStop(0, '#0d1425');
+      grad.addColorStop(1, '#12192e');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, cw, ch);
+
+      if (scene === 'rocks') {
+        // Dragon eggs
+        for (let i = 0; i < 12; i++) {
+          const x = 20 + (i % 4) * (cw / 4.5) + Math.sin(i * 2.3) * 15;
+          const y = ch * 0.5 + (Math.floor(i / 4)) * 30 + Math.sin(t * 0.5 + i) * 3;
+          const r = 18 + Math.sin(i * 1.7) * 8;
+          ctx.beginPath(); ctx.ellipse(x, y, r, r * 1.2, 0, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${80 + i * 8}, ${100 + i * 5}, ${130 + i * 3}, 0.6)`;
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(200,210,230,0.1)'; ctx.stroke();
+        }
+        // Water line
+        ctx.beginPath();
+        for (let x = 0; x <= cw; x += 3) {
+          ctx.lineTo(x, ch * 0.85 + Math.sin(x * 0.05 + t * 2) * 3);
+        }
+        ctx.lineTo(cw, ch); ctx.lineTo(0, ch); ctx.closePath();
+        ctx.fillStyle = 'rgba(10,22,40,0.7)'; ctx.fill();
+      }
+      else if (scene === 'waterfall') {
+        // Cliff
+        ctx.fillStyle = '#1a2540';
+        ctx.fillRect(cw * 0.35, 0, cw * 0.3, ch * 0.7);
+        // Water streams
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          const sx = cw * 0.38 + i * (cw * 0.06);
+          ctx.moveTo(sx, ch * 0.15);
+          for (let y = ch * 0.15; y < ch * 0.8; y += 3) {
+            ctx.lineTo(sx + Math.sin(y * 0.08 + t * 3 + i) * 4, y);
+          }
+          ctx.strokeStyle = `rgba(74,234,173,${0.2 + Math.sin(t + i) * 0.1})`;
+          ctx.lineWidth = 2; ctx.stroke();
+        }
+        // Pool
+        ctx.beginPath(); ctx.ellipse(cw * 0.5, ch * 0.82, cw * 0.3, 20, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(56,189,248,0.15)'; ctx.fill();
+      }
+      else if (scene === 'ships') {
+        // Ship hulls
+        for (let i = 0; i < 4; i++) {
+          const bx = 30 + i * (cw / 4.5);
+          const tilt = Math.sin(i * 1.5) * 0.15 + Math.sin(t * 0.3 + i) * 0.02;
+          ctx.save();
+          ctx.translate(bx, ch * 0.65);
+          ctx.rotate(tilt);
+          ctx.fillStyle = `rgba(${60 + i * 20}, ${50 + i * 10}, ${40}, 0.7)`;
+          ctx.beginPath();
+          ctx.moveTo(-15, 0); ctx.lineTo(-20, 30); ctx.lineTo(20, 30); ctx.lineTo(15, 0);
+          ctx.closePath(); ctx.fill();
+          // Mast
+          ctx.fillStyle = 'rgba(150,140,120,0.4)';
+          ctx.fillRect(-1, -40, 2, 40);
+          ctx.restore();
+        }
+        ctx.fillStyle = 'rgba(10,22,40,0.5)';
+        ctx.fillRect(0, ch * 0.82, cw, ch);
+      }
+      else if (scene === 'eye') {
+        // Rock circle
+        ctx.beginPath();
+        ctx.arc(cw * 0.5, ch * 0.5, ch * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = '#1a2540'; ctx.fill();
+        // Inner eye
+        const er = ch * 0.18;
+        const eGrad = ctx.createRadialGradient(cw*0.5, ch*0.5, 0, cw*0.5, ch*0.5, er);
+        eGrad.addColorStop(0, 'rgba(74,234,173,0.4)');
+        eGrad.addColorStop(0.5, 'rgba(45,130,100,0.3)');
+        eGrad.addColorStop(1, 'rgba(20,60,50,0.1)');
+        ctx.beginPath(); ctx.arc(cw*0.5, ch*0.5, er, 0, Math.PI*2);
+        ctx.fillStyle = eGrad; ctx.fill();
+        // Pupil
+        ctx.beginPath(); ctx.arc(cw*0.5, ch*0.5, er*0.3, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(10,15,26,0.8)'; ctx.fill();
+        // Shimmer
+        ctx.beginPath();
+        ctx.arc(cw*0.5+er*0.2, ch*0.5-er*0.2, er*0.08 + Math.sin(t*2)*er*0.02, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fill();
+      }
+      else if (scene === 'aurora-mini') {
+        // Whale skeleton
+        ctx.strokeStyle = 'rgba(200,210,225,0.2)'; ctx.lineWidth = 2;
+        // Spine
+        ctx.beginPath();
+        for (let x = cw*0.15; x < cw*0.85; x += 3) {
+          ctx.lineTo(x, ch*0.55 + Math.sin((x-cw*0.15)*0.03)*8);
+        }
+        ctx.stroke();
+        // Ribs
+        for (let i = 0; i < 10; i++) {
+          const rx = cw*0.25 + i*(cw*0.05);
+          const ry = ch*0.55 + Math.sin((rx-cw*0.15)*0.03)*8;
+          ctx.beginPath();
+          ctx.moveTo(rx, ry);
+          ctx.quadraticCurveTo(rx-5, ry+20, rx+3, ry+35);
+          ctx.strokeStyle = `rgba(200,210,225,${0.12+Math.sin(t*0.5+i)*0.03})`;
+          ctx.stroke();
+        }
+      }
+      else if (scene === 'swing') {
+        // Swing frame
+        ctx.strokeStyle = 'rgba(200,200,200,0.3)'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cw*0.3, ch*0.2); ctx.lineTo(cw*0.5, ch*0.7);
+        ctx.moveTo(cw*0.7, ch*0.2); ctx.lineTo(cw*0.5, ch*0.7);
+        ctx.moveTo(cw*0.3, ch*0.2); ctx.lineTo(cw*0.7, ch*0.2);
+        ctx.stroke();
+        // Swinging seat
+        const ang = Math.sin(t*1.5)*0.3;
+        const sx = cw*0.5 + Math.sin(ang)*ch*0.35;
+        const sy = ch*0.2 + Math.cos(ang)*ch*0.35;
+        ctx.beginPath(); ctx.moveTo(cw*0.5, ch*0.2); ctx.lineTo(sx, sy);
+        ctx.strokeStyle = 'rgba(74,234,173,0.3)'; ctx.stroke();
+        ctx.fillStyle = 'rgba(74,234,173,0.4)';
+        ctx.fillRect(sx-8, sy, 16, 4);
+      }
+      else if (scene === 'fjord') {
+        // Two cliff walls
+        ctx.fillStyle = '#141e35';
+        ctx.beginPath();
+        for (let y=0;y<ch;y+=3) ctx.lineTo(cw*0.2+Math.sin(y*0.03)*15, y);
+        ctx.lineTo(0,ch); ctx.lineTo(0,0); ctx.fill();
+        ctx.beginPath();
+        for (let y=0;y<ch;y+=3) ctx.lineTo(cw*0.8-Math.sin(y*0.025+1)*15, y);
+        ctx.lineTo(cw,ch); ctx.lineTo(cw,0); ctx.fill();
+        // Water
+        for (let x=cw*0.2;x<cw*0.8;x+=4) {
+          ctx.fillStyle = `rgba(56,189,248,${0.03+Math.sin(x*0.1+t*2)*0.02})`;
+          ctx.fillRect(x, ch*0.6+Math.sin(x*0.05+t)*3, 3, ch*0.4);
+        }
+      }
+      else if (scene === 'lighthouse') {
+        // Tower
+        ctx.fillStyle = '#2a3550';
+        ctx.fillRect(cw*0.45, ch*0.2, cw*0.1, ch*0.6);
+        // Light beam
+        ctx.save();
+        ctx.translate(cw*0.5, ch*0.22);
+        ctx.rotate(Math.sin(t)*0.4);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-cw*0.4, -ch*0.3);
+        ctx.lineTo(cw*0.4, -ch*0.3);
+        ctx.closePath();
+        const lg = ctx.createRadialGradient(0,0,0,0,0,cw*0.4);
+        lg.addColorStop(0, 'rgba(245,222,179,0.2)');
+        lg.addColorStop(1, 'rgba(245,222,179,0)');
+        ctx.fillStyle = lg; ctx.fill();
+        ctx.restore();
+        // Light
+        ctx.beginPath(); ctx.arc(cw*0.5, ch*0.22, 5+Math.sin(t*3)*2, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(245,222,179,0.8)'; ctx.fill();
+      }
+      else if (scene === 'battery') {
+        // Bunker
+        ctx.fillStyle = '#1d2840';
+        ctx.fillRect(cw*0.2, ch*0.45, cw*0.6, ch*0.3);
+        ctx.fillRect(cw*0.3, ch*0.35, cw*0.4, ch*0.1);
+        // Cannon
+        ctx.fillStyle = 'rgba(100,110,130,0.5)';
+        ctx.fillRect(cw*0.55, ch*0.38, cw*0.25, 6);
+        // Sky particles
+        for (let i=0;i<8;i++) {
+          ctx.beginPath();
+          ctx.arc(cw*(0.1+i*0.1+Math.sin(t*0.3+i)*0.02), ch*0.15+Math.sin(t+i)*5, 1, 0, Math.PI*2);
+          ctx.fillStyle = 'rgba(232,237,245,0.3)'; ctx.fill();
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+  });
+})();
+
+// ==============================
+// SCROLL REVEAL
+// ==============================
+const revealEls = document.querySelectorAll('[data-reveal]');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const delay = entry.target.dataset.delay || 0;
+      setTimeout(() => entry.target.classList.add('visible'), parseInt(delay));
+    }
+  });
+}, { threshold: 0.12 });
+revealEls.forEach(el => observer.observe(el));
+
+// ==============================
+// GUIDE AVATAR CANVASES
+// ==============================
+(function() {
+  const colors = {
+    sd: ['#4aeaad','#2dd4bf'],
+    ak: ['#38bdf8','#818cf8'],
+    dm: ['#f5deb3','#ff9966'],
+    ev: ['#e879a0','#c084fc'],
+    ip: ['#60a5fa','#4aeaad'],
+  };
+  document.querySelectorAll('.guide-canvas').forEach(c => {
+    const ctx = c.getContext('2d');
+    const id = c.dataset.guide;
+    const cols = colors[id] || ['#4aeaad','#38bdf8'];
+    let w, h;
+    function resize() {
+      const rect = c.parentElement.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      w = c.width = rect.width * dpr;
+      h = c.height = rect.height * dpr;
+    }
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(c.parentElement);
+
+    function draw(time) {
+      const t = time * 0.001;
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      const cw = w / dpr, ch = h / dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cw, ch);
+
+      // Gradient background
+      const grad = ctx.createLinearGradient(0, 0, cw, ch);
+      grad.addColorStop(0, '#0d1425');
+      grad.addColorStop(1, '#12192e');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, cw, ch);
+
+      // Animated orbit rings
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath();
+        const cx2 = cw * 0.5, cy2 = ch * 0.5;
+        const rx = 30 + i * 20 + Math.sin(t * 0.5 + i) * 5;
+        const ry = 20 + i * 14 + Math.cos(t * 0.3 + i) * 4;
+        ctx.ellipse(cx2, cy2, rx, ry, t * 0.2 + i * 0.8, 0, Math.PI * 2);
+        ctx.strokeStyle = cols[i % 2].replace(')', ',0.08)').replace('rgb', 'rgba').replace('#', '');
+        // Use hex with alpha
+        const alpha = 0.06 + Math.sin(t * 0.4 + i) * 0.03;
+        ctx.strokeStyle = `rgba(${parseInt(cols[i%2].slice(1,3),16)},${parseInt(cols[i%2].slice(3,5),16)},${parseInt(cols[i%2].slice(5,7),16)},${alpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // Floating particles
+      for (let i = 0; i < 20; i++) {
+        const px = cw * (0.2 + 0.6 * ((Math.sin(i * 73.7 + t * 0.2) * 0.5 + 0.5)));
+        const py = ch * (0.2 + 0.6 * ((Math.cos(i * 41.3 + t * 0.15) * 0.5 + 0.5)));
+        const sz = 1 + Math.sin(t + i * 2) * 0.8;
+        ctx.beginPath();
+        ctx.arc(px, py, sz, 0, Math.PI * 2);
+        const ci = i % 2;
+        ctx.fillStyle = `rgba(${parseInt(cols[ci].slice(1,3),16)},${parseInt(cols[ci].slice(3,5),16)},${parseInt(cols[ci].slice(5,7),16)},${0.2 + Math.sin(t * 2 + i) * 0.1})`;
+        ctx.fill();
+      }
+
+      // Central glow
+      const grd = ctx.createRadialGradient(cw*0.5, ch*0.5, 0, cw*0.5, ch*0.5, 60);
+      grd.addColorStop(0, `rgba(${parseInt(cols[0].slice(1,3),16)},${parseInt(cols[0].slice(3,5),16)},${parseInt(cols[0].slice(5,7),16)},0.06)`);
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, cw, ch);
+
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+  });
+})();
+
+// ==============================
+// ACCESSIBILITY MODE
+// ==============================
+(function() {
+  const btn = document.getElementById('a11yBtn');
+  if (!btn) return;
+
+  let active = false;
+
+  btn.addEventListener('click', () => {
+    active = !active;
+    document.body.classList.toggle('a11y-mode', active);
+
+    // Update button tooltip
+    const tooltip = btn.querySelector('.tooltip');
+    if (tooltip) {
+      tooltip.textContent = active ? 'Обычная версия' : 'Версия для слабовидящих';
+    }
+
+    // Update aria-label
+    btn.setAttribute('aria-label', active ? 'Вернуть обычную версию' : 'Включить версию для слабовидящих');
+
+    // Announce change for screen readers
+    const announcement = document.createElement('div');
+    announcement.setAttribute('role', 'alert');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);';
+    announcement.textContent = active ? 'Включена версия для слабовидящих: высокий контраст, крупный шрифт, анимации отключены' : 'Включена обычная версия сайта';
+    document.body.appendChild(announcement);
+    setTimeout(() => announcement.remove(), 3000);
+  });
+})();
+
+// ==============================
+// REVIEWS CAROUSEL
+// ==============================
+(function() {
+  const track = document.getElementById('reviewsTrack');
+  const prevBtn = document.getElementById('revPrev');
+  const nextBtn = document.getElementById('revNext');
+  if (!track || !prevBtn || !nextBtn) return;
+
+  const scrollAmount = 400;
+
+  prevBtn.addEventListener('click', () => {
+    track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+  });
+  nextBtn.addEventListener('click', () => {
+    track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+  });
+
+  // Touch-friendly: allow native swipe, buttons are supplementary
+})();
+
+// ==============================
+// SCROLL TO TOP / BOTTOM
+// ==============================
+(function() {
+  const topBtn = document.getElementById('scrollTopBtn');
+  const botBtn = document.getElementById('scrollBottomBtn');
+  if (!topBtn || !botBtn) return;
+
+  function update() {
+    const scrollY = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const threshold = 400;
+
+    // Show top button when scrolled down past threshold
+    topBtn.classList.toggle('visible', scrollY > threshold);
+    // Show bottom button when NOT near the bottom
+    botBtn.classList.toggle('visible', scrollY < maxScroll - threshold);
+  }
+
+  topBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  botBtn.addEventListener('click', () => {
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+  });
+
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+
+// ==============================
+// LANGUAGE SWITCHER (RU / ZH)
+// ==============================
+(function() {
+  const T = {
+    zh: {
+      // Nav
+      nav_places: '景点',
+      nav_excursions: '旅行路线',
+      nav_nature: '自然',
+      nav_region: '科拉半岛',
+      nav_seasons: '四季',
+      nav_guides: '导游',
+      nav_contact: '联系我们',
+
+      // Hero
+      hero_tag: '科拉半岛 · 巴伦支海 · 北纬69°',
+      hero_title: '世界<br><em>尽头</em>',
+      hero_sub: '俄罗斯唯一可以驾车抵达北冰洋海岸的地方。在这里，苔原与海洋相遇，北极光在废弃船骸上空翩翩起舞。',
+      hero_lat: '纬度',
+      hero_lon: '经度',
+      hero_scroll: '向下滚动',
+
+      // Places
+      places_title: '捷里别尔卡<br>标志性景点',
+      places_desc: '被《国家地理》杂志评为全球20佳旅行目的地之一。每一个角落都是历史、自然雕塑或北极的低语。',
+      badge_signature: '名片级景点',
+      badge_mustsee: '必看',
+      badge_film: '电影取景地',
+      badge_secret: '隐秘之地',
+      badge_leviathan: '利维坦电影',
+      badge_insta: '网红打卡点',
+      badge_panorama: '全景',
+      badge_lighthouse: '灯塔',
+      badge_military: '军事历史',
+      place1_title: '"龙蛋"海滩',
+      place2_title: '巴特列斯基瀑布',
+      place3_title: '船舶墓地',
+      place4_title: '龙之眼',
+      place5_title: '《利维坦》鲸鱼骨架',
+      place6_title: '海洋秋千',
+      place7_title: '捷里别尔卡峡湾',
+      place8_title: '捷里别尔卡灯塔',
+      place9_title: '第199号海岸防御炮台',
+
+      // Info banner
+      info_title: '捷里别尔卡数据',
+
+      // Excursions
+      exc_title: '北方<br>探索路线',
+      exc_desc: '每一次旅程都是深入北极原始之美的体验。所有路线包含摩尔曼斯克接送。',
+      exc1_title: '巴特列斯基瀑布与龙蛋海滩',
+      exc2_title: '追猎北极光',
+      exc3_title: '巴伦支海观鲸之旅',
+      exc4_title: '苔原、山丘与北极峡湾',
+      exc5_title: '北极味道',
+      exc6_title: '苔原雪地摩托',
+      etag_water: '水上路线',
+      etag_night: '夜间探索',
+      etag_sea: '海上探险',
+      etag_trek: '徒步',
+      etag_gastro: '美食之旅',
+      etag_winter: '冬季极限',
+      meta_duration: '时长',
+      meta_route: '路程',
+      meta_perperson: '每人',
+      meta_season: '季节',
+      meta_people: '人数',
+
+      // Nature
+      nature_label: '野生自然',
+      nature_title: '未经修饰的北极',
+
+      // Region
+      region_title: '科拉<br>半岛',
+      reg1_title: '希比内山',
+      reg2_title: '赛伊德湖',
+      reg3_title: '洛沃泽罗村',
+      reg4_title: '雷巴奇与斯列德尼半岛',
+      reg5_title: '紫水晶海岸',
+      reg6_title: '摩尔曼斯克',
+      rtag1: '山脉',
+      rtag2: '神秘湖泊',
+      rtag3: '萨米文化',
+      rtag4: '半岛',
+      rtag5: '地质奇观',
+      rtag6: '北极圈之都',
+
+      // Seasons
+      seasons_title: '北方的<br>四张面孔',
+      s1_name: '极夜',
+      s2_name: '冰冻之春',
+      s3_name: '极昼',
+      s4_name: '金秋',
+
+      // How to get
+      howto_title: '如何到达',
+      rt1_title: '飞机+自驾',
+      rt2_title: '长途巴士',
+      rt3_title: '含接送的旅行团',
+
+      // Guides
+      guides_title: '我们的导游',
+      g1_name: '谢尔盖·季坚科',
+      g1_role: '首席导游 · 创始人',
+      g2_name: '安娜·科尔佐娃',
+      g2_role: '自然导游',
+      g3_name: '德米特里·穆拉绍夫',
+      g3_role: '历史导游',
+      g4_name: '叶莲娜·沃斯特里科娃',
+      g4_role: '美食导游',
+      g5_name: '伊戈尔·波利亚尔内',
+      g5_role: '极限运动导游',
+
+      // CTA
+      cta_title: '准备好<em>旅行</em><br>到世界尽头了吗？',
+      cta_sub: '联系我们，我们将根据您的日期、预算和北极梦想，为您量身定制完美路线。捷里别尔卡、希比内山、赛伊德湖——或者全部！',
+      cta_btn: '预订旅行',
+      cta_tg: '通过Telegram联系',
+      cta_phone: '+7 921 123-45-67',
+
+      // Reviews
+      reviews_title: '旅行者<br>评价',
+      reviews_desc: '来自已经到达世界尽头的旅行者的真实故事。未经编辑和美化的真实印象——就像北极本身一样。',
+      rev1_exc: '追猎北极光',
+      rev1_text: '谢尔盖带我们深入苔原的黑暗中。我们喝着热茶，突然天空爆发出绿色的光芒。我被美哭了。这是我一生中最强烈的体验——而我去过很多地方。',
+      rev1_name: '玛丽亚·科兹洛娃',
+      rev1_origin: '莫斯科 · 2026年1月',
+      rev2_exc: '观鲸之旅',
+      rev2_text: '当座头鲸在距离我们的船30米处跃出水面，用尾巴拍打海面时——整条船都安静了。然后所有人开始兴奋地尖叫。安娜给我们讲述了它们的迁徙故事。不可思议的一天。',
+      rev2_name: '阿列克谢·彼得罗夫',
+      rev2_origin: '圣彼得堡 · 2025年8月',
+      rev3_exc: '巴伦支海之旅',
+      rev3_text: '我们从北京来到这个世界尽头的小村庄。站在北冰洋的岸边，看着极光在天空中舞动，我觉得这一切都像一场梦。谢尔盖是一位出色的向导，即使语言不同，他的热情也感染了所有人。',
+      rev3_name: '王小明',
+      rev3_origin: '北京 · 2025年12月',
+      rev4_exc: '美食之旅「北极味道」',
+      rev4_text: '刚从海里捞上来的海胆、篝火上烤的扇贝、堪察加蟹——一切都伴随着巴伦支海的波浪声。渔民讲述故事，厨师在火边施展魔法。毫不夸张，这是我一生中最棒的晚餐。',
+      rev4_name: '奥莉加·斯米尔诺娃',
+      rev4_origin: '叶卡捷琳堡 · 2025年9月',
+      rev5_exc: '苔原与雪地摩托',
+      rev5_text: '我和朋友们骑着雪地摩托来到完全的寂静中。白雪皑皑的苔原延伸到地平线，没有任何声音，只有风。晚上——极光就在头顶上方。捷里别尔卡永远在我心中。一定会再来。',
+      rev5_name: '德米特里·切尔诺夫',
+      rev5_origin: '新西伯利亚 · 2026年2月',
+      rev6_exc: '龙蛋海滩与瀑布',
+      rev6_text: '从上海飞了将近20个小时来到这里，但一切都值得。龙蛋海滩的巨石令人震撼，瀑布直接流入北冰洋的景象终生难忘。捷里别尔卡是真正的地球尽头，强烈推荐给所有热爱自然的人。',
+      rev6_name: '李静雯',
+      rev6_origin: '上海 · 2025年7月',
+
+      // Footer
+      footer_copy: '© 2026 捷里别尔卡探险',
+      footer_loc: '科拉半岛，摩尔曼斯克州，俄罗斯',
+
+      // Contact FABs
+      fab_tg: 'Telegram',
+      fab_phone: '+7 921 123-45-67',
+    }
+  };
+
+  // Store original Russian text
+  const originals = {};
+  let currentLang = 'ru';
+
+  function init() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const isHtml = el.hasAttribute('data-i18n-html');
+      originals[key] = isHtml ? el.innerHTML : el.textContent;
+    });
+  }
+
+  function setLang(lang) {
+    if (lang === currentLang) return;
+    currentLang = lang;
+
+    document.body.classList.toggle('lang-zh', lang === 'zh');
+    document.documentElement.lang = lang === 'zh' ? 'zh' : 'ru';
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const isHtml = el.hasAttribute('data-i18n-html');
+      if (lang === 'zh' && T.zh[key]) {
+        if (isHtml) el.innerHTML = T.zh[key];
+        else el.textContent = T.zh[key];
+      } else if (lang === 'ru' && originals[key]) {
+        if (isHtml) el.innerHTML = originals[key];
+        else el.textContent = originals[key];
+      }
+    });
+
+    // Update a11y tooltip
+    const tooltip = document.querySelector('.a11y-toggle .tooltip');
+    if (tooltip) {
+      const isA11y = document.body.classList.contains('a11y-mode');
+      if (lang === 'zh') tooltip.textContent = isA11y ? '普通版本' : '无障碍版本';
+      else tooltip.textContent = isA11y ? 'Обычная версия' : 'Версия для слабовидящих';
+    }
+
+    // Update lead guide badge via CSS
+    const leadBadgeStyle = document.getElementById('leadBadgeStyle');
+    if (leadBadgeStyle) leadBadgeStyle.remove();
+    if (lang === 'zh') {
+      const s = document.createElement('style');
+      s.id = 'leadBadgeStyle';
+      s.textContent = `.guide-card.lead::after { content: '首席导游' !important; }`;
+      document.head.appendChild(s);
+    }
+
+    // Update lang buttons
+    document.querySelectorAll('.lang-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === lang);
+    });
+  }
+
+  // Init
+  document.addEventListener('DOMContentLoaded', () => {
+    init();
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => setLang(btn.dataset.lang));
+    });
+  });
+
+  // Also init if DOM is already ready
+  if (document.readyState !== 'loading') {
+    init();
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => setLang(btn.dataset.lang));
+    });
+  }
+})();
+</script>
+</body>
+</html>
